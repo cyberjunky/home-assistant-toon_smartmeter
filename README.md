@@ -11,6 +11,13 @@ More information about rooting your TOON can be found here:
 
 ### Installation
 
+## HACS - Recommended
+- Have [HACS](https://hacs.xyz) installed, this will allow you to easily update.
+- Add `https://github.com/cyberjunky/home-assistant-toon_smartmeter` as a [custom repository](https://hacs.xyz/docs/navigation/repository) with Type: Integration
+- Click Install under "TOON Smart Meter" integration.
+- Restart Home-Assistant.
+
+## Manual
 - Copy directory `custom_components/toon_smartmeter` to your `<config dir>/custom_components` directory.
 - Configure with config below.
 - Restart Home-Assistant.
