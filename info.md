@@ -14,7 +14,7 @@ More information about rooting your TOON can be found here:
 ### Installation
 
 - Install this integration using HACS.
-- Configure using configuration instructions below.
+- Configure using the configuration instructions below.
 - Restart Home-Assistant.
 
 {% endif %}
