@@ -2,7 +2,6 @@
   "name": "TOON Smart Meter",
   "country": "NL",
   "render_readme": false,
-  "domains": ["sensor"],
-  "country": ["NL","BE"]
+  "domains": ["sensor"]
 }
 
