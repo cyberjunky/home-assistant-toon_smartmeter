@@ -66,7 +66,7 @@ If you want them grouped instead of having the separate sensor badges, you can u
 ```yaml
 # Example groups.yaml entry
 
-Smart meter:
+Smart Meter:
   - sensor.toon_gas_used_last_hour
   - sensor.toon_gas_used_cnt
   - sensor.toon_power_use_cnt
