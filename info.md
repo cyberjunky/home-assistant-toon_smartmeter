@@ -1,7 +1,7 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)  [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)  [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
 
 ## TOON Smart Meter Sensor Component
-This component reads and displays sensor values from the meteradapter connected to a rooted TOON thermostat.
+This is a Custom Component for Home-Assistant (https://home-assistant.io) reads and displays sensor values from the meteradapter connected to a rooted TOON thermostat.
 
 NOTE: This component only works with rooted TOON devices.
 TOON thermostats are available in The Netherlands and Belgium.
@@ -13,8 +13,8 @@ More information about rooting your TOON can be found here:
 
 ### Installation
 
-- Copy directory `custom_components/toon_smartmeter` to your `<config dir>/custom_components` directory.
-- Configure with config below.
+- Install this integration using HACS.
+- Configure using configuration instructions below.
 - Restart Home-Assistant.
 
 {% endif %}
@@ -86,9 +86,6 @@ Smart meter:
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter.png?raw=true "Screenshot TOON Smart Meter")
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-gasused.png?raw=true "Screenshot TOON Graph Gas Used")
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-poweruselow.png?raw=true "Screenshot TOON Graph Power Use Low")
-
-## Changes
-* first release for hacs
 
 ### Donation
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
