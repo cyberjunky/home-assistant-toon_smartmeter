@@ -11,7 +11,7 @@ More information about rooting your TOON can be found here:
 
 {% if not installed %}
 
-### Installation
+## Installation
 
 - Install this integration using HACS.
 - Configure using the configuration instructions below.
@@ -19,7 +19,7 @@ More information about rooting your TOON can be found here:
 
 {% endif %}
 
-### Usage
+## Usage
 To use this component in your installation, add the following to your `configuration.yaml` file:
 
 ```yaml
@@ -81,11 +81,11 @@ Smart meter:
   - sensor.toon_p1_heat
 ```
 
-### Screenshots
+## Screenshots
 
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter.png?raw=true "Screenshot TOON Smart Meter")
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-gasused.png?raw=true "Screenshot TOON Graph Gas Used")
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-poweruselow.png?raw=true "Screenshot TOON Graph Power Use Low")
 
-### Donation
+## Donation
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
