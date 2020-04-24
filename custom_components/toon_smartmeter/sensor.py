@@ -1,6 +1,6 @@
 """
-Support for reading Smart Meter data using TOON thermostats meteradapter.
-Only works for rooted TOON.
+Support for reading Smart Meter data using Toon thermostats meteradapter.
+Only works for rooted Toon.
 
 configuration.yaml
 
@@ -47,7 +47,7 @@ _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=10)
 
-SENSOR_PREFIX = 'TOON '
+SENSOR_PREFIX = 'Toon '
 SENSOR_TYPES = {
     'gasused': ['Gas Used Last Hour', 'm3', 'mdi:fire'],
     'gasusedcnt': ['Gas Used Cnt', 'm3', 'mdi:fire'],
@@ -74,7 +74,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 })
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Setup the TOON Smart Meter sensors."""
+    """Setup the Toon Smart Meter sensors."""
 
     host = config.get(CONF_HOST)
     port = config.get(CONF_PORT)
@@ -89,17 +89,18 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         unit = SENSOR_TYPES[resource][1]
         icon = SENSOR_TYPES[resource][2]
 
-        _LOGGER.debug("Adding TOON Smart Meter sensor: {}, {}, {}, {}".format(name, sensor_type, unit, icon))
+        _LOGGER.debug("Adding Toon Smart Meter sensor: {}, {}, {}, {}".format(name, sensor_type, unit, icon))
         entities.append(ToonSmartMeterSensor(toondata, name, sensor_type, unit, icon))
 
     async_add_entities(entities, True)
 
 # pylint: disable=abstract-method
 class ToonSmartMeterData(object):
-    """Handle TOON object and limit updates."""
+    """Handle Toon object and limit updates."""
 
     def __init__(self, hass, host, port):
         """Initialize the data object."""
+
         self._hass = hass
         self._host = host
         self._port = port
@@ -109,22 +110,28 @@ class ToonSmartMeterData(object):
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
-        """Update the data from TOON."""
+        """Download and update data from Toon."""
         try:
             websession = async_get_clientsession(self._hass)
             with async_timeout.timeout(5):
                 response = await websession.get(self._url)
             _LOGGER.debug(
-                "Response status from TOON: %s", response.status
-            )
-            self._data = await response.json(content_type='text/javascript')
-            _LOGGER.debug("Data received from TOON: %s", self._data)
-        except (asyncio.TimeoutError, aiohttp.ClientError):
-            _LOGGER.error("Cannot connect to TOON thermostat")
+                "Response status from Toon: %s", response.status
+            ) 
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Cannot connect to Toon: %s", err)
             self._data = None
             return
-        except (Exception) as err:
-            _LOGGER.error("Error downloading from TOON thermostat: %s", err)
+        except Exception as err:
+            _LOGGER.error("Error downloading from Toon: %s", err)
+            self._data = None
+            return
+
+        try:
+            self._data = await response.json(content_type='text/javascript')
+            _LOGGER.debug("Data received from Toon: %s", self._data)
+        except Exception as err:
+            _LOGGER.error("Cannot parse data from Toon: %s", err)
             self._data = None
             return
 
@@ -136,7 +143,7 @@ class ToonSmartMeterData(object):
         return None
 
 class ToonSmartMeterSensor(Entity):
-    """Representation of a Smart Meter connected to TOON."""
+    """Representation of a Smart Meter connected to Toon."""
 
     def __init__(self, toondata, name, sensor_type, unit, icon):
         """Initialize the sensor."""
