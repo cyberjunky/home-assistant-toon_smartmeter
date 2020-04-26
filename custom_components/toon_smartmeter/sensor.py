@@ -199,7 +199,7 @@ class ToonSmartMeterSensor(Entity):
                         self._dev_id['elecusageflowlow'] = key
                         self._dev_id['elecusagecntlow'] = key
 
-                    if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_4', 'HAE_METER_v3_7']:
+                    if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_4']:
                         self._dev_id['elecusageflowhigh'] = key
                         self._dev_id['elecusagecnthigh'] = key
 
