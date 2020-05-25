@@ -272,12 +272,16 @@ class ToonSmartMeterSensor(Entity):
             elif self._type == 'elecsolar':
                 if 'dev_2.3' in energy:
                     self._state = energy["dev_2.3"]["CurrentElectricityFlow"]
+                elif 'dev_3.3' in energy:
+                    self._state = energy["dev_3.3"]["CurrentElectricityFlow"]
                 elif 'dev_4.3' in energy:
                     self._state = energy["dev_4.3"]["CurrentElectricityFlow"]
 
             elif self._type == 'elecsolarcnt':
                 if 'dev_2.3' in energy:
                     self._state = float(energy["dev_2.3"]["CurrentElectricityQuantity"])/1000
+                elif 'dev_3.3' in energy:
+                    self._state = float(energy["dev_3.3"]["CurrentElectricityQuantity"])/1000
                 elif 'dev_4.3' in energy:
                     self._state = float(energy["dev_4.3"]["CurrentElectricityQuantity"])/1000
 
