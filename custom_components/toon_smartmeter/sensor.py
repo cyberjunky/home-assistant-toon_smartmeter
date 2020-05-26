@@ -76,11 +76,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Setup the Toon Smart Meter sensors."""
 
-    host = config.get(CONF_HOST)
-    port = config.get(CONF_PORT)
-
-    toondata = ToonSmartMeterData(hass, host, port)
-    await toondata.async_update()
+    session = async_get_clientsession(hass)
+    data = ToonSmartMeterData(session, config.get(CONF_HOST), config.get(CONF_PORT))
+    await data.async_update()
 
     entities = []
     for resource in config[CONF_RESOURCES]:
@@ -90,7 +88,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         icon = SENSOR_TYPES[resource][2]
 
         _LOGGER.debug("Adding Toon Smart Meter sensor: {}, {}, {}, {}".format(name, sensor_type, unit, icon))
-        entities.append(ToonSmartMeterSensor(toondata, name, sensor_type, unit, icon))
+        entities.append(ToonSmartMeterSensor(data, name, sensor_type, unit, icon))
 
     async_add_entities(entities, True)
 
@@ -98,32 +96,28 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class ToonSmartMeterData(object):
     """Handle Toon object and limit updates."""
 
-    def __init__(self, hass, host, port):
+    def __init__(self, session, host, port):
         """Initialize the data object."""
 
-        self._hass = hass
-        self._host = host
-        self._port = port
-
-        self._url = BASE_URL.format(self._host, self._port)
+        self._session = session
+        self._url = BASE_URL.format(host, port)
         self._data = None
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         """Download and update data from Toon."""
+
         try:
-            websession = async_get_clientsession(self._hass)
             with async_timeout.timeout(5):
-                response = await websession.get(self._url)
-            _LOGGER.debug(
-                "Response status from Toon: %s", response.status
-            ) 
-        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-            _LOGGER.error("Cannot connect to Toon: %s", err)
-            self._data = None
+                response = await self._session.get(self._url)
+        except aiohttp.ClientError:
+            _LOGGER.error("Cannot poll Toon using url: %s", self._url)
+            return
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout occured while polling Toon using url: %s", self._url)
             return
         except Exception as err:
-            _LOGGER.error("Error downloading from Toon: %s", err)
+            _LOGGER.error("Unknown error occured while polling Toon: %s", err)
             self._data = None
             return
 
@@ -133,7 +127,6 @@ class ToonSmartMeterData(object):
         except Exception as err:
             _LOGGER.error("Cannot parse data from Toon: %s", err)
             self._data = None
-            return
 
     @property
     def latest_data(self):
@@ -145,9 +138,9 @@ class ToonSmartMeterData(object):
 class ToonSmartMeterSensor(Entity):
     """Representation of a Smart Meter connected to Toon."""
 
-    def __init__(self, toondata, name, sensor_type, unit, icon):
+    def __init__(self, data, name, sensor_type, unit, icon):
         """Initialize the sensor."""
-        self._toondata = toondata
+        self._data = data
         self._name = name
         self._type = sensor_type
         self._unit = unit
@@ -180,47 +173,54 @@ class ToonSmartMeterSensor(Entity):
     async def async_update(self):
         """Get the latest data and use it to update our sensor state."""
 
-        await self._toondata.async_update()
-        energy = self._toondata.latest_data
+        await self._data.async_update()
+        energy = self._data.latest_data
 
         if energy:
             if self._discovery == False:
-                
-                _LOGGER.debug("Doing discovery")
-
                 for key in energy:
                     dev = energy[key]
 
+                    """gas verbruik"""
                     if dev['type'] in ['gas', 'HAE_METER_v2_1', 'HAE_METER_v3_1']:
                         self._dev_id['gasused'] = key
                         self._dev_id['gasusedcnt'] = key
 
+                    """elec verbruik laag"""
                     if dev['type'] in ['elec_delivered_lt', 'HAE_METER_v2_5', 'HAE_METER_v3_6', 'HAE_METER_v3_5']:
                         self._dev_id['elecusageflowlow'] = key
                         self._dev_id['elecusagecntlow'] = key
 
-                    if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_4']:
+                    """elec verbruik hoog/normaal"""
+                    if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_3', 'HAE_METER_v3_4']:
                         self._dev_id['elecusageflowhigh'] = key
                         self._dev_id['elecusagecnthigh'] = key
 
+                    """elec teruglevering laag"""
                     if dev['type'] in ['elec_received_lt', 'HAE_METER_v2_6', 'HAE_METER_v3_7']:
                         self._dev_id['elecprodflowlow'] = key
                         self._dev_id['elecprodcntlow'] = key
 
+                    """elec teruglevering hoog/normaal"""
                     if dev['type'] in ['elec_received_nt', 'HAE_METER_v2_4', 'HAE_METER_v3_5']:
                         self._dev_id['elecprodflowhigh'] = key
                         self._dev_id['elecprodcnthigh'] = key
 
+                _LOGGER.debug("Discovered these keys: %s", self._dev_id)
+
                 self._discovery = True
 
+                """gas verbruik laatste uur"""
             if self._type == 'gasused':
                 if self._type in self._dev_id:
                     self._state = float(energy[self._dev_id[self._type]]["CurrentGasFlow"])/1000
 
+                """gas verbruik teller laatste uur"""
             elif self._type == 'gasusedcnt':
                 if self._type in self._dev_id:
                     self._state = float(energy[self._dev_id[self._type]]["CurrentGasQuantity"])/1000
 
+                """elec verbruik puls"""
             elif self._type == 'elecusageflowpulse':
                 if 'dev_3.2' in energy:
                     self._state = energy["dev_3.2"]["CurrentElectricityFlow"]
@@ -228,7 +228,10 @@ class ToonSmartMeterSensor(Entity):
                     self._state = energy["dev_2.2"]["CurrentElectricityFlow"]
                 elif 'dev_4.2' in energy:
                     self._state = energy["dev_4.2"]["CurrentElectricityFlow"]
+                elif 'dev_7.2' in energy:
+                    self._state = energy["dev_7.2"]["CurrentElectricityFlow"]
 
+                """elec verbruik teller puls"""
             elif self._type == 'elecusagecntpulse':
                 if 'dev_3.2' in energy:
                     self._state = float(energy["dev_3.2"]["CurrentElectricityQuantity"])/1000
@@ -236,39 +239,50 @@ class ToonSmartMeterSensor(Entity):
                     self._state = float(energy["dev_2.2"]["CurrentElectricityQuantity"])/1000
                 elif 'dev_4.2' in energy:
                     self._state = float(energy["dev_4.2"]["CurrentElectricityQuantity"])/1000
+                elif 'dev_7.2' in energy:
+                    self._state = float(energy["dev_7.2"]["CurrentElectricityQuantity"])/1000
 
+                """elec verbruik laag"""
             elif self._type == 'elecusageflowlow':
                 if self._type in self._dev_id:
                     self._state = energy[self._dev_id[self._type]]["CurrentElectricityFlow"]
 
+                """elec verbruik teller laag"""
             elif self._type == 'elecusagecntlow':
                 if self._type in self._dev_id:
                     self._state = float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000
 
+                """elec verbruik hoog/normaal"""
             elif self._type == 'elecusageflowhigh':
                 if self._type in self._dev_id:
                     self._state = energy[self._dev_id[self._type]]["CurrentElectricityFlow"]
 
+                """elec verbruik teller hoog/normaal"""
             elif self._type == 'elecusagecnthigh':
                 if self._type in self._dev_id:
                     self._state = float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000
 
+                """elec teruglever laag"""
             elif self._type == 'elecprodflowlow':
                 if self._type in self._dev_id:
                     self._state = energy[self._dev_id[self._type]]["CurrentElectricityFlow"]
 
+                """elec teruglever teller laag"""
             elif self._type == 'elecprodcntlow':
                 if self._type in self._dev_id:
                     self._state = float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000
 
+                """elec teruglever hoog/normaal"""
             elif self._type == 'elecprodflowhigh':
                 if self._type in self._dev_id:
                     self._state = energy[self._dev_id[self._type]]["CurrentElectricityFlow"]
 
+                """elec teruglever teller hoog/normaal"""
             elif self._type == 'elecprodcnthigh':
                 if self._type in self._dev_id:
                     self._state = float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000
 
+                """zon op toon"""
             elif self._type == 'elecsolar':
                 if 'dev_2.3' in energy:
                     self._state = energy["dev_2.3"]["CurrentElectricityFlow"]
@@ -277,6 +291,7 @@ class ToonSmartMeterSensor(Entity):
                 elif 'dev_4.3' in energy:
                     self._state = energy["dev_4.3"]["CurrentElectricityFlow"]
 
+                """zon op toon teller"""
             elif self._type == 'elecsolarcnt':
                 if 'dev_2.3' in energy:
                     self._state = float(energy["dev_2.3"]["CurrentElectricityQuantity"])/1000
