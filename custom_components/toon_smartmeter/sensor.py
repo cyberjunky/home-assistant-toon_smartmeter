@@ -109,15 +109,15 @@ class ToonSmartMeterData(object):
 
         try:
             with async_timeout.timeout(5):
-                response = await self._session.get(self._url)
+                response = await self._session.get(self._url, headers={"Accept-Encoding": "identity"})
         except aiohttp.ClientError:
             _LOGGER.error("Cannot poll Toon using url: %s", self._url)
             return
         except asyncio.TimeoutError:
-            _LOGGER.error("Timeout occured while polling Toon using url: %s", self._url)
+            _LOGGER.error("Timeout error occurred while polling Toon using url: %s", self._url)
             return
         except Exception as err:
-            _LOGGER.error("Unknown error occured while polling Toon: %s", err)
+            _LOGGER.error("Unknown error occurred while polling Toon: %s", err)
             self._data = None
             return
 
@@ -125,7 +125,7 @@ class ToonSmartMeterData(object):
             self._data = await response.json(content_type='text/javascript')
             _LOGGER.debug("Data received from Toon: %s", self._data)
         except Exception as err:
-            _LOGGER.error("Cannot parse data from Toon: %s", err)
+            _LOGGER.error("Cannot parse data received from Toon: %s", err)
             self._data = None
 
     @property
@@ -207,7 +207,6 @@ class ToonSmartMeterSensor(Entity):
                         self._dev_id['elecprodcnthigh'] = key
 
                 _LOGGER.debug("Discovered these keys: %s", self._dev_id)
-
                 self._discovery = True
 
                 """gas verbruik laatste uur"""
