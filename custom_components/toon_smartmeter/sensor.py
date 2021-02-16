@@ -152,8 +152,11 @@ class ToonSmartMeterSensor(Entity):
 
     def _validateOutput(self, value):
         """Return 0 if the output from the Toon is NaN (happens after a reboot)"""
-        if value.lower() == "nan":
-            return 0
+        try:
+            if value.lower() == "nan":
+                value = 0
+        except:
+            return value
 
         return value
 
