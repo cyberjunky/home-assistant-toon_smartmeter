@@ -91,5 +91,16 @@ Smart Meter:
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-gasused.png?raw=true "Screenshot TOON Graph Gas Used")
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-poweruselow.png?raw=true "Screenshot TOON Graph Power Use Low")
 
+## Debugging
+
+Add the relevant lines below to the `configuration.yaml`:
+
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.toon_smartmeter: debug
+```
+
 ## Donation
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
