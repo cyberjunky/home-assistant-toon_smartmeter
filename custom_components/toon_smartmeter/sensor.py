@@ -192,31 +192,31 @@ class ToonSmartMeterSensor(Entity):
                     dev = energy[key]
 
                     """gas verbruik"""
-                    if dev['type'] in ['gas', 'HAE_METER_v2_1', 'HAE_METER_v3_1']:
+                    if dev['type'] in ['gas', 'HAE_METER_v2_1', 'HAE_METER_v3_1'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
                         self._dev_id['gasused'] = key
                         self._dev_id['gasusedcnt'] = key
 
                     """elec verbruik laag"""
-                    if dev['type'] in ['elec_delivered_lt', 'HAE_METER_v2_5', 'HAE_METER_v3_6', 'HAE_METER_v3_5']:
+                    if dev['type'] in ['elec_delivered_lt', 'HAE_METER_v2_5', 'HAE_METER_v3_6', 'HAE_METER_v3_5'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
                         self._dev_id['elecusageflowlow'] = key
                         self._dev_id['elecusagecntlow'] = key
 
                     """elec verbruik hoog/normaal"""
-                    if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_3', 'HAE_METER_v3_4']:
+                    if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_3', 'HAE_METER_v3_4'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
                         self._dev_id['elecusageflowhigh'] = key
                         self._dev_id['elecusagecnthigh'] = key
 
                     """elec teruglevering laag"""
-                    if dev['type'] in ['elec_received_lt', 'HAE_METER_v2_6', 'HAE_METER_v3_7']:
+                    if dev['type'] in ['elec_received_lt', 'HAE_METER_v2_6', 'HAE_METER_v3_7'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
                         self._dev_id['elecprodflowlow'] = key
                         self._dev_id['elecprodcntlow'] = key
 
                     """elec teruglevering hoog/normaal"""
-                    if dev['type'] in ['elec_received_nt', 'HAE_METER_v2_4', 'HAE_METER_v3_5']:
+                    if dev['type'] in ['elec_received_nt', 'HAE_METER_v2_4', 'HAE_METER_v3_5'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
                         self._dev_id['elecprodflowhigh'] = key
                         self._dev_id['elecprodcnthigh'] = key
 
-                _LOGGER.debug("Discovered these keys: %s", self._dev_id)
+                _LOGGER.debug("Discovered these keys: %s", self._dev_id, key)
                 self._discovery = True
 
                 """gas verbruik laatste uur"""
