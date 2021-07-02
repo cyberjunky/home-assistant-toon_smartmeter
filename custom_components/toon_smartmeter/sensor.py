@@ -32,6 +32,7 @@ import aiohttp
 import asyncio
 import async_timeout
 import voluptuous as vol
+from functools import reduce
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -186,137 +187,148 @@ class ToonSmartMeterSensor(Entity):
         await self._data.async_update()
         energy = self._data.latest_data
 
-        if energy:
-            if self._discovery == False:
-                for key in energy:
-                    dev = energy[key]
+        if not energy:
+                return
 
-                    """gas verbruik"""
-                    if dev['type'] in ['gas', 'HAE_METER_v2_1', 'HAE_METER_v3_1'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
-                        self._dev_id['gasused'] = key
-                        self._dev_id['gasusedcnt'] = key
+        if self._discovery == False:
+            for key in energy:
+                dev = energy[key]
 
-                    """elec verbruik laag"""
-                    if dev['type'] in ['elec_delivered_lt', 'HAE_METER_v2_5', 'HAE_METER_v3_6', 'HAE_METER_v3_5'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
-                        self._dev_id['elecusageflowlow'] = key
-                        self._dev_id['elecusagecntlow'] = key
-
-                    """elec verbruik hoog/normaal"""
-                    if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_3', 'HAE_METER_v3_4'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
-                        self._dev_id['elecusageflowhigh'] = key
-                        self._dev_id['elecusagecnthigh'] = key
-
-                    """elec teruglevering laag"""
-                    if dev['type'] in ['elec_received_lt', 'HAE_METER_v2_6', 'HAE_METER_v3_7'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
-                        self._dev_id['elecprodflowlow'] = key
-                        self._dev_id['elecprodcntlow'] = key
-
-                    """elec teruglevering hoog/normaal"""
-                    if dev['type'] in ['elec_received_nt', 'HAE_METER_v2_4', 'HAE_METER_v3_5'] and energy[key]['CurrentSensorStatus'] == 'OPERATIONAL':
-                        self._dev_id['elecprodflowhigh'] = key
-                        self._dev_id['elecprodcnthigh'] = key
-
-                _LOGGER.debug("Discovered these keys: %s", self._dev_id)
-                self._discovery = True
-
-                """gas verbruik laatste uur"""
-            if self._type == 'gasused':
-                if self._type in self._dev_id:
-                    self._state = float(energy[self._dev_id[self._type]]["CurrentGasFlow"])/1000
-
-                """gas verbruik teller laatste uur"""
-            elif self._type == 'gasusedcnt':
-                if self._type in self._dev_id:
-                    self._state = float(energy[self._dev_id[self._type]]["CurrentGasQuantity"])/1000
-
-                """elec verbruik puls"""
-            elif self._type == 'elecusageflowpulse':
-                if 'dev_3.2' in energy:
-                    self._state = self._validateOutput(energy["dev_3.2"]["CurrentElectricityFlow"])
-                elif 'dev_2.2' in energy:
-                    self._state = self._validateOutput(energy["dev_2.2"]["CurrentElectricityFlow"])
-                elif 'dev_4.2' in energy:
-                    self._state = self._validateOutput(energy["dev_4.2"]["CurrentElectricityFlow"])
-                elif 'dev_7.2' in energy:
-                    self._state = self._validateOutput(energy["dev_7.2"]["CurrentElectricityFlow"])
-
-                """elec verbruik teller puls"""
-            elif self._type == 'elecusagecntpulse':
-                if 'dev_3.2' in energy:
-                    self._state = self._validateOutput(float(energy["dev_3.2"]["CurrentElectricityQuantity"])/1000)
-                elif 'dev_2.2' in energy:
-                    self._state = self._validateOutput(float(energy["dev_2.2"]["CurrentElectricityQuantity"])/1000)
-                elif 'dev_4.2' in energy:
-                    self._state = self._validateOutput(float(energy["dev_4.2"]["CurrentElectricityQuantity"])/1000)
-                elif 'dev_7.2' in energy:
-                    self._state = self._validateOutput(float(energy["dev_7.2"]["CurrentElectricityQuantity"])/1000)
+                """gas verbruik"""
+                if dev['type'] in ['gas', 'HAE_METER_v2_1', 'HAE_METER_v3_1'] and safe_get(energy, [key,'CurrentSensorStatus'], default='OPERATIONAL') == 'OPERATIONAL':
+                    self._dev_id['gasused'] = key
+                    self._dev_id['gasusedcnt'] = key
 
                 """elec verbruik laag"""
-            elif self._type == 'elecusageflowlow':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
-
-                """elec verbruik teller laag"""
-            elif self._type == 'elecusagecntlow':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+                if dev['type'] in ['elec_delivered_lt', 'HAE_METER_v2_5', 'HAE_METER_v3_6', 'HAE_METER_v3_5'] and safe_get(energy, [key,'CurrentSensorStatus'], default='OPERATIONAL') == 'OPERATIONAL':
+                    self._dev_id['elecusageflowlow'] = key
+                    self._dev_id['elecusagecntlow'] = key
 
                 """elec verbruik hoog/normaal"""
-            elif self._type == 'elecusageflowhigh':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
+                if dev['type'] in ['elec_delivered_nt', 'HAE_METER_v2_3', 'HAE_METER_v3_3', 'HAE_METER_v3_4'] and safe_get(energy, [key,'CurrentSensorStatus'], default='OPERATIONAL') == 'OPERATIONAL':
+                    self._dev_id['elecusageflowhigh'] = key
+                    self._dev_id['elecusagecnthigh'] = key
 
-                """elec verbruik teller hoog/normaal"""
-            elif self._type == 'elecusagecnthigh':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+                """elec teruglevering laag"""
+                if dev['type'] in ['elec_received_lt', 'HAE_METER_v2_6', 'HAE_METER_v3_7'] and safe_get(energy, [key,'CurrentSensorStatus'], default='OPERATIONAL') == 'OPERATIONAL':
+                    self._dev_id['elecprodflowlow'] = key
+                    self._dev_id['elecprodcntlow'] = key
 
-                """elec teruglever laag"""
-            elif self._type == 'elecprodflowlow':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
+                """elec teruglevering hoog/normaal"""
+                if dev['type'] in ['elec_received_nt', 'HAE_METER_v2_4', 'HAE_METER_v3_5'] and safe_get(energy, [key,'CurrentSensorStatus'], default='OPERATIONAL') == 'OPERATIONAL':
+                    self._dev_id['elecprodflowhigh'] = key
+                    self._dev_id['elecprodcnthigh'] = key
 
-                """elec teruglever teller laag"""
-            elif self._type == 'elecprodcntlow':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+            _LOGGER.debug("Discovered these keys: %s", self._dev_id)
+            self._discovery = True
 
-                """elec teruglever hoog/normaal"""
-            elif self._type == 'elecprodflowhigh':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
+            """gas verbruik laatste uur"""
+        if self._type == 'gasused':
+            if self._type in self._dev_id:
+                self._state = float(energy[self._dev_id[self._type]]["CurrentGasFlow"])/1000
 
-                """elec teruglever teller hoog/normaal"""
-            elif self._type == 'elecprodcnthigh':
-                if self._type in self._dev_id:
-                    self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+            """gas verbruik teller laatste uur"""
+        elif self._type == 'gasusedcnt':
+            if self._type in self._dev_id:
+                self._state = float(energy[self._dev_id[self._type]]["CurrentGasQuantity"])/1000
 
-                """zon op toon"""
-            elif self._type == 'elecsolar':
-                if 'dev_3.export' in energy:
-                    self._state = self._validateOutput(energy["dev_3.export"]["CurrentElectricityFlow"])
-                elif 'dev_2.3' in energy:
-                    self._state = self._validateOutput(energy["dev_2.3"]["CurrentElectricityFlow"])
-                elif 'dev_3.3' in energy:
-                    self._state = self._validateOutput(energy["dev_3.3"]["CurrentElectricityFlow"])
-                elif 'dev_4.3' in energy:
-                    self._state = self._validateOutput(energy["dev_4.3"]["CurrentElectricityFlow"])
+            """elec verbruik puls"""
+        elif self._type == 'elecusageflowpulse':
+            if 'dev_3.2' in energy:
+                self._state = self._validateOutput(energy["dev_3.2"]["CurrentElectricityFlow"])
+            elif 'dev_2.2' in energy:
+                self._state = self._validateOutput(energy["dev_2.2"]["CurrentElectricityFlow"])
+            elif 'dev_4.2' in energy:
+                self._state = self._validateOutput(energy["dev_4.2"]["CurrentElectricityFlow"])
+            elif 'dev_7.2' in energy:
+                self._state = self._validateOutput(energy["dev_7.2"]["CurrentElectricityFlow"])
 
-                """zon op toon teller"""
-            elif self._type == 'elecsolarcnt':
-                if 'dev_3.export' in energy:
-                    self._state = self._validateOutput(float(energy["dev_3.export"]["CurrentElectricityQuantity"])/1000)
-                elif 'dev_2.3' in energy:
-                    self._state = self._validateOutput(float(energy["dev_2.3"]["CurrentElectricityQuantity"])/1000)
-                elif 'dev_3.3' in energy:
-                    self._state = self._validateOutput(float(energy["dev_3.3"]["CurrentElectricityQuantity"])/1000)
-                elif 'dev_4.3' in energy:
-                    self._state = self._validateOutput(float(energy["dev_4.3"]["CurrentElectricityQuantity"])/1000)
+            """elec verbruik teller puls"""
+        elif self._type == 'elecusagecntpulse':
+            if 'dev_3.2' in energy:
+                self._state = self._validateOutput(float(energy["dev_3.2"]["CurrentElectricityQuantity"])/1000)
+            elif 'dev_2.2' in energy:
+                self._state = self._validateOutput(float(energy["dev_2.2"]["CurrentElectricityQuantity"])/1000)
+            elif 'dev_4.2' in energy:
+                self._state = self._validateOutput(float(energy["dev_4.2"]["CurrentElectricityQuantity"])/1000)
+            elif 'dev_7.2' in energy:
+                self._state = self._validateOutput(float(energy["dev_7.2"]["CurrentElectricityQuantity"])/1000)
 
-            elif self._type == 'heat':
-                if 'dev_2.8' in energy:
-                    self._state = self._validateOutput(float(energy["dev_2.8"]["CurrentHeatQuantity"])/1000)
-                elif 'dev_4.8' in energy:
-                    self._state = self._validateOutput(float(energy["dev_4.8"]["CurrentHeatQuantity"])/1000)
+            """elec verbruik laag"""
+        elif self._type == 'elecusageflowlow':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
 
-            _LOGGER.debug("Device: {} State: {}".format(self._type, self._state))
+            """elec verbruik teller laag"""
+        elif self._type == 'elecusagecntlow':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+
+            """elec verbruik hoog/normaal"""
+        elif self._type == 'elecusageflowhigh':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
+
+            """elec verbruik teller hoog/normaal"""
+        elif self._type == 'elecusagecnthigh':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+
+            """elec teruglever laag"""
+        elif self._type == 'elecprodflowlow':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
+
+            """elec teruglever teller laag"""
+        elif self._type == 'elecprodcntlow':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+
+            """elec teruglever hoog/normaal"""
+        elif self._type == 'elecprodflowhigh':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(energy[self._dev_id[self._type]]["CurrentElectricityFlow"])
+
+            """elec teruglever teller hoog/normaal"""
+        elif self._type == 'elecprodcnthigh':
+            if self._type in self._dev_id:
+                self._state = self._validateOutput(float(energy[self._dev_id[self._type]]["CurrentElectricityQuantity"])/1000)
+
+            """zon op toon"""
+        elif self._type == 'elecsolar':
+            if 'dev_3.export' in energy:
+                self._state = self._validateOutput(energy["dev_3.export"]["CurrentElectricityFlow"])
+            elif 'dev_2.3' in energy:
+                self._state = self._validateOutput(energy["dev_2.3"]["CurrentElectricityFlow"])
+            elif 'dev_3.3' in energy:
+                self._state = self._validateOutput(energy["dev_3.3"]["CurrentElectricityFlow"])
+            elif 'dev_4.3' in energy:
+                self._state = self._validateOutput(energy["dev_4.3"]["CurrentElectricityFlow"])
+
+            """zon op toon teller"""
+        elif self._type == 'elecsolarcnt':
+            if 'dev_3.export' in energy:
+                self._state = self._validateOutput(float(energy["dev_3.export"]["CurrentElectricityQuantity"])/1000)
+            elif 'dev_2.3' in energy:
+                self._state = self._validateOutput(float(energy["dev_2.3"]["CurrentElectricityQuantity"])/1000)
+            elif 'dev_3.3' in energy:
+                self._state = self._validateOutput(float(energy["dev_3.3"]["CurrentElectricityQuantity"])/1000)
+            elif 'dev_4.3' in energy:
+                self._state = self._validateOutput(float(energy["dev_4.3"]["CurrentElectricityQuantity"])/1000)
+
+        elif self._type == 'heat':
+            if 'dev_2.8' in energy:
+                self._state = self._validateOutput(float(energy["dev_2.8"]["CurrentHeatQuantity"])/1000)
+            elif 'dev_4.8' in energy:
+                self._state = self._validateOutput(float(energy["dev_4.8"]["CurrentHeatQuantity"])/1000)
+
+        _LOGGER.debug("Device: {} State: {}".format(self._type, self._state))
+
+def safe_get(_dict, keys, default=None):
+
+    def _reducer(d, key):
+        if isinstance(d, dict):
+            return d.get(key, default)
+        return default
+
+    return reduce(_reducer, keys, _dict)
