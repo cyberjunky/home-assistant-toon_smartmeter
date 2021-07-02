@@ -216,7 +216,7 @@ class ToonSmartMeterSensor(Entity):
                         self._dev_id['elecprodflowhigh'] = key
                         self._dev_id['elecprodcnthigh'] = key
 
-                _LOGGER.debug("Discovered these keys: %s", self._dev_id, key)
+                _LOGGER.debug("Discovered these keys: %s", self._dev_id)
                 self._discovery = True
 
                 """gas verbruik laatste uur"""
