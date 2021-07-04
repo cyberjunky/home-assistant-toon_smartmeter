@@ -1,19 +1,19 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)  [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
 
-## TOON Smart Meter Sensor Component
-This is a Custom Component for Home-Assistant (https://home-assistant.io) reads and displays sensor values from the meteradapter connected to a rooted TOON thermostat.
+## Toon Smart Meter Sensor Component
+This is a Custom Component for Home-Assistant (https://home-assistant.io) reads and displays sensor values from the meteradapter connected to a rooted Toon thermostat.
 
-NOTE: This component only works with rooted TOON devices.
-TOON thermostats are available in The Netherlands and Belgium.
+NOTE: This component only works with rooted Toon devices.
+Toon thermostats are available in The Netherlands and Belgium.
 
-More information about rooting your TOON can be found here:
-[Eneco TOON as Domotica controller](http://www.domoticaforum.eu/viewforum.php?f=87)
+More information about rooting your Toon can be found here:
+[Eneco Toon as Domotica controller](http://www.domoticaforum.eu/viewforum.php?f=87)
 
 ## Installation
 
 ### HACS - Recommended
 - Have [HACS](https://hacs.xyz) installed, this will allow you to easily manage and track updates.
-- Search for 'TOON Smart Meter'.
+- Search for 'Toon Smart Meter'.
 - Click Install below the found integration.
 - Configure using the configuration instructions below.
 - Restart Home-Assistant.
@@ -54,12 +54,12 @@ sensor:
 
 Configuration variables:
 
-- **host** (*Required*): The IP address on which the TOON can be reached.
-- **port** (*Optional*): Port used by your TOON. (default = 80)
+- **host** (*Required*): The IP address on which the Toon can be reached.
+- **port** (*Optional*): Port used by your Toon. (default = 80)
 - **scan_interval** (*Optional*): Number of seconds between polls. (default = 10)
 - **resources** (*Required*): This section tells the component which values to display, you can leave out the elecprod values if your don't generate power and the elecusage*pulse types if you use the P1 connection.
 
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-badges.png?raw=true "TOON Smart Meter Badges")
+![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-badges.png?raw=true "Toon Smart Meter Badges")
 
 If you want them grouped instead of having the separate sensor badges, you can use this in your `groups.yaml`:
 
@@ -87,9 +87,9 @@ Smart Meter:
 
 ## Screenshots
 
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter.png?raw=true "Screenshot TOON Smart Meter")
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-gasused.png?raw=true "Screenshot TOON Graph Gas Used")
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-poweruselow.png?raw=true "Screenshot TOON Graph Power Use Low")
+![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter.png?raw=true "Screenshot Toon Smart Meter")
+![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-gasused.png?raw=true "Screenshot Toon Graph Gas Used")
+![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-poweruselow.png?raw=true "Screenshot Toon Graph Power Use Low")
 
 ## Debugging
 
