@@ -50,6 +50,7 @@ SENSOR_LIST = {
     "gasused",
     "gasusedcnt",
     "elecusageflowpulse",
+    "elecusagecntpulse",
     "elecusageflowlow",
     "elecusageflowhigh",
     "elecprodflowlow",
