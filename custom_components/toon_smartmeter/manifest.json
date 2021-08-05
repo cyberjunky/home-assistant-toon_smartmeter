@@ -1,7 +1,7 @@
 {
   "domain": "toon_smartmeter",
-  "name": "TOON Smart Meter",
-  "version": "1.0.9",
+  "name": "Toon Smart Meter",
+  "version": "1.0.10",
   "documentation": "https://github.com/cyberjunky/home-assistant-toon_smartmeter",
   "issue_tracker": "https://github.com/cyberjunky/home-assistant-toon_smartmeter/issues",
   "requirements": [],
