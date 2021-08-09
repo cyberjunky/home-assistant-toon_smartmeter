@@ -29,6 +29,7 @@ from homeassistant.const import (
     CONF_RESOURCES,
     CONF_SCAN_INTERVAL,
     DEVICE_CLASS_ENERGY,
+    DEVICE_CLASS_POWER,
     ENERGY_KILO_WATT_HOUR,
     POWER_WATT,
 )
@@ -83,14 +84,14 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="Power Use",
         icon="mdi:flash",
         unit_of_measurement=POWER_WATT,
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
     ),
     SensorEntityDescription(
         key="elecusageflowlow",
         name="P1 Power Use Low",
         icon="mdi:flash",
         unit_of_measurement=POWER_WATT,
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -98,7 +99,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="P1 Power Use High",
         icon="mdi:flash",
         unit_of_measurement=POWER_WATT,
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -106,7 +107,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="P1 Power Prod Low",
         icon="mdi:flash",
         unit_of_measurement=POWER_WATT,
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -114,7 +115,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="P1 Power Prod High",
         icon="mdi:flash",
         unit_of_measurement=POWER_WATT,
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
         state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -162,7 +163,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="P1 Power Solar",
         icon="mdi:flash",
         unit_of_measurement=POWER_WATT,
-        device_class=DEVICE_CLASS_ENERGY,
+        device_class=DEVICE_CLASS_POWER,
     ),
     SensorEntityDescription(
         key="elecsolarcnt",
@@ -325,7 +326,9 @@ class ToonSmartMeterSensor(SensorEntity):
     @property
     def last_reset(self):
         """Return the last reset of measurement of this entity."""
-        return self._last_reset
+        if self._device_class == DEVICE_CLASS_ENERGY:
+            return self._last_reset
+        return None
 
     async def async_update(self):
         """Get the latest data and use it to update our sensor state."""
