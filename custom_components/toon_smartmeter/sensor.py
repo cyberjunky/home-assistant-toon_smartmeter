@@ -1,4 +1,5 @@
 """Sensor for Toon Smart Meter integration."""
+from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
@@ -64,7 +65,7 @@ SENSOR_LIST = {
     "heat",
 }
 
-SENSOR_TYPES: Final[tuple[SensorEntityDescription]] = (
+SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
     SensorEntityDescription(
         key="gasused",
         name="Gas Used Last Hour",
