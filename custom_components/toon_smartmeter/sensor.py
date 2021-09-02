@@ -12,26 +12,22 @@ import async_timeout
 import voluptuous as vol
 
 from homeassistant.components.sensor import (
-    ATTR_LAST_RESET,
-    ATTR_STATE_CLASS,
     PLATFORM_SCHEMA,
-    STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_TOTAL_INCREASING,
     SensorEntity,
     SensorEntityDescription,
 )
 from homeassistant.const import (
-    ATTR_DEVICE_CLASS,
-    ATTR_ICON,
-    ATTR_NAME,
-    ATTR_UNIT_OF_MEASUREMENT,
     CONF_HOST,
     CONF_PORT,
     CONF_RESOURCES,
-    CONF_SCAN_INTERVAL,
     DEVICE_CLASS_ENERGY,
+    DEVICE_CLASS_GAS,
     DEVICE_CLASS_POWER,
     ENERGY_KILO_WATT_HOUR,
     POWER_WATT,
+    VOLUME_CUBIC_METERS,
+
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
@@ -44,7 +40,6 @@ _LOGGER = logging.getLogger(__name__)
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=10)
 
 SENSOR_PREFIX = "Toon "
-VOLUME_M3 = "m3"
 ATTR_MEASUREMENT = "measurement"
 ATTR_SECTION = "section"
 
@@ -71,107 +66,111 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         key="gasused",
         name="Gas Used Last Hour",
         icon="mdi:gas-cylinder",
-        unit_of_measurement=VOLUME_M3,
+        device_class=DEVICE_CLASS_GAS,
+        native_unit_of_measurement=VOLUME_CUBIC_METERS,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="gasusedcnt",
         name="Gas Used Cnt",
         icon="mdi:gas-cylinder",
-        unit_of_measurement=VOLUME_M3,
+        device_class=DEVICE_CLASS_GAS,
+        native_unit_of_measurement=VOLUME_CUBIC_METERS,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecusageflowpulse",
         name="Power Use",
         icon="mdi:flash",
-        unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
     ),
     SensorEntityDescription(
         key="elecusageflowlow",
         name="P1 Power Use Low",
         icon="mdi:flash",
-        unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecusageflowhigh",
         name="P1 Power Use High",
         icon="mdi:flash",
-        unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecprodflowlow",
         name="P1 Power Prod Low",
         icon="mdi:flash",
-        unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecprodflowhigh",
         name="P1 Power Prod High",
         icon="mdi:flash",
-        unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecusagecntpulse",
         name="P1 Power Use Cnt",
         icon="mdi:flash",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
+        native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecusagecntlow",
         name="P1 Power Use Cnt Low",
         icon="mdi:flash",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
+        native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecusagecnthigh",
         name="P1 Power Use Cnt High",
         icon="mdi:flash",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
+        native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecprodcntlow",
         name="P1 Power Prod Cnt Low",
         icon="mdi:flash",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
+        native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecprodcnthigh",
         name="P1 Power Prod Cnt High",
         icon="mdi:flash",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
+        native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="elecsolar",
         name="P1 Power Solar",
         icon="mdi:flash",
-        unit_of_measurement=POWER_WATT,
+        native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
     ),
     SensorEntityDescription(
         key="elecsolarcnt",
         name="P1 Power Solar Cnt",
         icon="mdi:flash",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
+        native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="heat",
@@ -268,12 +267,12 @@ class ToonSmartMeterSensor(SensorEntity):
         self._state = None
 
         self._type = self.entity_description.key
-        self._name = SENSOR_PREFIX + self.entity_description.name
-        self._icon = self.entity_description.icon
-        self._unit_of_measurement = self.entity_description.unit_of_measurement
-        self._state_class = self.entity_description.state_class
-        self._device_class = self.entity_description.device_class
-        self._last_reset = dt.utc_from_timestamp(0)
+        self._attr_icon = self.entity_description.icon
+        self._attr_name = SENSOR_PREFIX + self.entity_description.name
+        self._attr_state_class = self.entity_description.state_class
+        self._attr_native_unit_of_measurement = self.entity_description.native_unit_of_measurement
+        self._attr_device_class = self.entity_description.device_class
+        self._attr_unique_id = f"{SENSOR_PREFIX}_{self._type}"
 
         self._discovery = False
         self._dev_id = {}
@@ -282,53 +281,16 @@ class ToonSmartMeterSensor(SensorEntity):
         """Return 0 if the output from the Toon is NaN (happens after a reboot)"""
         try:
             if value.lower() == "nan":
-                value = 0
+                value = 0    @property
         except:
             return value
 
         return value
 
     @property
-    def unique_id(self):
-        """Return the unique id."""
-        return f"{SENSOR_PREFIX}_{self._type}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def icon(self):
-        """Icon to use in the frontend, if any."""
-        return self._icon
-
-    @property
     def state(self):
         """Return the state of the sensor. (total/current power consumption/production or total gas used)"""
         return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity."""
-        return self._unit_of_measurement
-
-    @property
-    def device_class(self):
-        """Return the device class of this entity."""
-        return self._device_class
-
-    @property
-    def state_class(self):
-        """Return the state class of this entity."""
-        return self._state_class
-
-    @property
-    def last_reset(self):
-        """Return the last reset of measurement of this entity."""
-        if self._device_class == DEVICE_CLASS_ENERGY:
-            return self._last_reset
-        return None
 
     async def async_update(self):
         """Get the latest data and use it to update our sensor state."""
