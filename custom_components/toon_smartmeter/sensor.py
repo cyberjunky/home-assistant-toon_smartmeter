@@ -14,6 +14,7 @@ import voluptuous as vol
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     STATE_CLASS_TOTAL_INCREASING,
+    STATE_CLASS_MEASUREMENT,
     SensorEntity,
     SensorEntityDescription,
 )
@@ -91,6 +92,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         icon="mdi:flash",
         native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
+        state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
         key="elecusageflowhigh",
@@ -98,6 +100,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         icon="mdi:flash",
         native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
+        state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
         key="elecprodflowlow",
@@ -105,6 +108,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         icon="mdi:flash",
         native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
+        state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
         key="elecprodflowhigh",
@@ -112,6 +116,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         icon="mdi:flash",
         native_unit_of_measurement=POWER_WATT,
         device_class=DEVICE_CLASS_POWER,
+        state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
         key="elecusagecntpulse",
