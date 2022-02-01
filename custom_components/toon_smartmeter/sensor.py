@@ -69,7 +69,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         icon="mdi:gas-cylinder",
         device_class=DEVICE_CLASS_GAS,
         native_unit_of_measurement=VOLUME_CUBIC_METERS,
-        state_class=STATE_CLASS_TOTAL_INCREASING,
+        state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
         key="gasusedcnt",
