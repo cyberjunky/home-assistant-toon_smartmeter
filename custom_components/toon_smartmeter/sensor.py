@@ -308,7 +308,7 @@ class ToonSmartMeterSensor(SensorEntity):
 
                 """gas verbruik"""
                 if (
-                    dev["type"] in ["gas", "HAE_METER_v2_1", "HAE_METER_v3_1"]
+                    dev["type"] in ["gas", "HAE_METER_v2_1", "HAE_METER_v3_1", "HAE_METER_v4_1"]
                     and safe_get(energy, [key, "CurrentGasQuantity"], default="NaN")
                     != "NaN"
                 ):
@@ -323,6 +323,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v2_5",
                         "HAE_METER_v3_6",
                         "HAE_METER_v3_5",
+                        "HAE_METER_v4_6",
                     ]
                     and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
@@ -340,6 +341,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v2_3",
                         "HAE_METER_v3_3",
                         "HAE_METER_v3_4",
+                        "HAE_METER_v4_4",
                     ]
                     and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
@@ -352,7 +354,12 @@ class ToonSmartMeterSensor(SensorEntity):
                 """elec teruglevering laag"""
                 if (
                     dev["type"]
-                    in ["elec_received_lt", "HAE_METER_v2_6", "HAE_METER_v3_7"]
+                    in [
+                        "elec_received_lt",
+                        "HAE_METER_v2_6",
+                        "HAE_METER_v3_7",
+                        "HAE_METER_v4_7",
+                    ]
                     and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
@@ -364,7 +371,12 @@ class ToonSmartMeterSensor(SensorEntity):
                 """elec teruglevering hoog/normaal"""
                 if (
                     dev["type"]
-                    in ["elec_received_nt", "HAE_METER_v2_4", "HAE_METER_v3_5"]
+                    in [
+                        "elec_received_nt",
+                        "HAE_METER_v2_4",
+                        "HAE_METER_v3_5",
+                        "HAE_METER_v4_5",
+                    ]
                     and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
@@ -372,6 +384,35 @@ class ToonSmartMeterSensor(SensorEntity):
                 ):
                     self._dev_id["elecprodflowhigh"] = key
                     self._dev_id["elecprodcnthigh"] = key
+
+                """solar"""
+                if (
+                    dev["type"]
+                    in [
+                        "HAE_METER_v3_3",
+                        "HAE_METER_v4_3",
+                    ]
+                    and safe_get(
+                        energy, [key, "CurrentElectricityQuantity"], default="NaN"
+                    )
+                    != "NaN"
+                ):
+                    self._dev_id["elecsolar"] = key
+                    self._dev_id["elecsolarcnt"] = key
+
+                """heat"""
+                if (
+                    dev["type"]
+                    in [
+                        "HAE_METER_v3_8",
+                        "HAE_METER_v4_8",
+                    ]
+                    and safe_get(
+                        energy, [key, "CurrentElectricityQuantity"], default="NaN"
+                    )
+                    != "NaN"
+                ):
+                    self._dev_id["heat"] = key
 
             self._discovery = True
             _LOGGER.debug("Discovered: '%s'", self._dev_id)
@@ -498,58 +539,27 @@ class ToonSmartMeterSensor(SensorEntity):
 
             """zon op toon"""
         elif self._type == "elecsolar":
-            if "dev_4.export" in energy:
+            if self._type in self._dev_id:
                 self._state = self._validateOutput(
-                    energy["dev_4.export"]["CurrentElectricityFlow"]
+                    energy[self._dev_id[self._type]]["CurrentElectricityFlow"]
                 )
-            elif "dev_3.export" in energy:
-                self._state = self._validateOutput(
-                    energy["dev_3.export"]["CurrentElectricityFlow"]
-                )
-            elif "dev_2.3" in energy:
-                self._state = self._validateOutput(
-                    energy["dev_2.3"]["CurrentElectricityFlow"]
-                )
-            elif "dev_3.3" in energy:
-                self._state = self._validateOutput(
-                    energy["dev_3.3"]["CurrentElectricityFlow"]
-                )
-            elif "dev_4.3" in energy:
-                self._state = self._validateOutput(
-                    energy["dev_4.3"]["CurrentElectricityFlow"]
-                )
-
             """zon op toon teller"""
         elif self._type == "elecsolarcnt":
-            if "dev_4.export" in energy:
+            if self._type in self._dev_id:
                 self._state = self._validateOutput(
-                    float(energy["dev_4.export"]["CurrentElectricityQuantity"]) / 1000
-                )
-            elif "dev_3.export" in energy:
-                self._state = self._validateOutput(
-                    float(energy["dev_3.export"]["CurrentElectricityQuantity"]) / 1000
-                )
-            elif "dev_2.3" in energy:
-                self._state = self._validateOutput(
-                    float(energy["dev_2.3"]["CurrentElectricityQuantity"]) / 1000
-                )
-            elif "dev_3.3" in energy:
-                self._state = self._validateOutput(
-                    float(energy["dev_3.3"]["CurrentElectricityQuantity"]) / 1000
-                )
-            elif "dev_4.3" in energy:
-                self._state = self._validateOutput(
-                    float(energy["dev_4.3"]["CurrentElectricityQuantity"]) / 1000
+                    float(
+                        energy[self._dev_id[self._type]]["CurrentElectricityQuantity"]
+                    )
+                    / 1000
                 )
 
         elif self._type == "heat":
-            if "dev_2.8" in energy:
+            if self._type in self._dev_id:
                 self._state = self._validateOutput(
-                    float(energy["dev_2.8"]["CurrentHeatQuantity"]) / 1000
-                )
-            elif "dev_4.8" in energy:
-                self._state = self._validateOutput(
-                    float(energy["dev_4.8"]["CurrentHeatQuantity"]) / 1000
+                    float(
+                        energy[self._dev_id[self._type]]["CurrentHeatQuantity"]
+                    )
+                    / 1000
                 )
 
         _LOGGER.debug("Device: {} State: {}".format(self._type, self._state))
