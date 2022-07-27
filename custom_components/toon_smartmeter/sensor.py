@@ -539,13 +539,29 @@ class ToonSmartMeterSensor(SensorEntity):
 
             """zon op toon"""
         elif self._type == "elecsolar":
-            if self._type in self._dev_id:
+            if "dev_4.export" in energy:
+                self._state = self._validateOutput(
+                    energy["dev_4.export"]["CurrentElectricityFlow"]
+                )
+            elif "dev_3.export" in energy:
+                self._state = self._validateOutput(
+                    energy["dev_3.export"]["CurrentElectricityFlow"]
+                )
+            elif self._type in self._dev_id:
                 self._state = self._validateOutput(
                     energy[self._dev_id[self._type]]["CurrentElectricityFlow"]
                 )
             """zon op toon teller"""
         elif self._type == "elecsolarcnt":
-            if self._type in self._dev_id:
+            if "dev_4.export" in energy:
+                self._state = self._validateOutput(
+                    float(energy["dev_4.export"]["CurrentElectricityQuantity"]) / 1000
+                )
+            elif "dev_3.export" in energy:
+                self._state = self._validateOutput(
+                    float(energy["dev_3.export"]["CurrentElectricityQuantity"]) / 1000
+                )
+            elif self._type in self._dev_id:
                 self._state = self._validateOutput(
                     float(
                         energy[self._dev_id[self._type]]["CurrentElectricityQuantity"]
