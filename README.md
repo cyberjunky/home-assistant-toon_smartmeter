@@ -102,5 +102,9 @@ logger:
     custom_components.toon_smartmeter: debug
 ```
 
+## Energy Dashboard
+You can configure your dashboard like so:
+![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/dashboard.png?raw=true "Screenshot Toon Energy Dashboard")
+
 ## Donation
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
