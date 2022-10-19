@@ -36,8 +36,8 @@ sensor:
       - elecsolar
       - elecsolarcnt
       - heat
-	  - waterflow
-	  - waterquantity
+      - waterflow
+      - waterquantity
 ```
 
 Configuration variables:
