@@ -247,7 +247,7 @@ class ToonSmartMeterData(object):
         try:
             data = await response.text()
             self._data = json.loads(data.replace("NaN", "0"))
-            _LOGGER.error("Data received from Toon: %s", self._data)
+            _LOGGER.debug("Data received from Toon: %s", self._data)
         except Exception as err:
             _LOGGER.error("Cannot parse data received from Toon: %s", err)
             self._data = None
