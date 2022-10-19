@@ -4,7 +4,7 @@
 This is a Custom Component for Home-Assistant (https://home-assistant.io) reads and displays sensor values from the meteradapter connected to a rooted Toon thermostat.
 
 NOTE: This component only works with rooted Toon devices.
-Toon thermostats are available in The Netherlands and Belgium.
+Toon thermostats are available in The Netherlands and Belgium (Boxx).
 
 More information about rooting your Toon can be found here:
 [Eneco Toon as Domotica controller](http://www.domoticaforum.eu/viewforum.php?f=87)
@@ -36,6 +36,8 @@ sensor:
       - elecsolar
       - elecsolarcnt
       - heat
+	  - waterflow
+	  - waterquantity
 ```
 
 Configuration variables:
@@ -69,6 +71,8 @@ Smart Meter:
   - sensor.toon_p1_power_solar
   - sensor.toon_p1_power_solar_cnt
   - sensor.toon_p1_heat
+  - sensor.toon_p1_waterquantity
+  - sensor.toon_p1_waterflow
 ```
 
 ## Screenshots
