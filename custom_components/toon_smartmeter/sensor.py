@@ -36,10 +36,6 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle, dt
 
-"""
-BASE_URL = "http://{0}:{1}/boxx.json"
-
-"""
 BASE_URL = "http://{0}:{1}/hdrv_zwave?action=getDevices.json"
 
 
