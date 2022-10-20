@@ -582,6 +582,10 @@ class ToonSmartMeterSensor(SensorEntity):
                 self._state = self._validateOutput(
                     energy["dev_3.export"]["CurrentElectricityFlow"]
                 )
+            elif "dev_7.export" in energy:
+                self._state = self._validateOutput(
+                    energy["dev_7.export"]["CurrentElectricityFlow"]
+                )  
             elif self._type in self._dev_id:
                 self._state = self._validateOutput(
                     energy[self._dev_id[self._type]]["CurrentElectricityFlow"]
