@@ -37,6 +37,8 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle, dt
 
 BASE_URL = "http://{0}:{1}/hdrv_zwave?action=getDevices.json"
+
+
 _LOGGER = logging.getLogger(__name__)
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=10)
@@ -61,6 +63,8 @@ SENSOR_LIST = {
     "elecsolar",
     "elecsolarcnt",
     "heat",
+    "waterflow",
+    "waterquantity",
 }
 
 SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
@@ -180,6 +184,21 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="P1 Heat",
         icon="mdi:fire",
     ),
+    SensorEntityDescription(
+        key="waterquantity",
+        name="P1 waterquantity",
+        native_unit_of_measurement=VOLUME_CUBIC_METERS,
+        icon="mdi:water",
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="waterflow",
+        name="P1 waterflow",
+        device_class="pressure",
+        unit_of_measurement = "l/m",
+        icon="mdi:water-pump",
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
 )
 
 
@@ -247,6 +266,7 @@ class ToonSmartMeterData(object):
         try:
             data = await response.text()
             self._data = json.loads(data.replace("NaN", "0"))
+
             _LOGGER.debug("Data received from Toon: %s", self._data)
         except Exception as err:
             _LOGGER.error("Cannot parse data received from Toon: %s", err)
@@ -401,12 +421,27 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v4_8",
                     ]
                     and safe_get(
-                        energy, [key, "CurrentElectricityQuantity"], default="NaN"
+                        energy, [key, "CurrentHeatQuantity"], default="NaN"
                     )
                     != "NaN"
                 ):
                     self._dev_id["heat"] = key
 
+                """water"""
+                if (
+                    dev["type"]
+                    in [
+                        "HAE_METER_v4_9",
+                    ]
+                    and safe_get(
+                        energy, [key, "CurrentWaterQuantity"], default="NaN"
+                    )
+                    != "NaN"
+                ):
+                    self._dev_id["waterquantity"] = key
+                    self._dev_id["waterflow"] = key
+   
+   
             self._discovery = True
             _LOGGER.debug("Discovered: '%s'", self._dev_id)
 
@@ -502,6 +537,19 @@ class ToonSmartMeterSensor(SensorEntity):
         elif self._type == "heat":
             if self._type in self._dev_id:
                 self._state = float(energy[self._dev_id[self._type]]["CurrentHeatQuantity"])/ 1000
+
+        elif self._type == "waterquantity":
+            if self._type in self._dev_id:
+                self._state = (
+                    float(energy[self._dev_id[self._type]]["CurrentWaterQuantity"])
+                )
+
+        elif self._type == "waterflow":
+            if self._type in self._dev_id:
+                self._state = (
+                    float(energy[self._dev_id[self._type]]["CurrentWaterFlow"])
+                )
+
 
         _LOGGER.debug("Device: {} State: {}".format(self._type, self._state))
 
