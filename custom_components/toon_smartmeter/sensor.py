@@ -182,6 +182,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         key="heat",
         name="P1 Heat",
         icon="mdi:fire",
+        unit_of_measurement="Gj",
     ),
     SensorEntityDescription(
         key="waterquantity",
@@ -344,6 +345,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v3_6",
                         "HAE_METER_v3_5",
                         "HAE_METER_v4_6",
+                        "HAE_METER_HEAT_5",
                     ]
                     and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
@@ -362,6 +364,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v3_3",
                         "HAE_METER_v3_4",
                         "HAE_METER_v4_4",
+                        "HAE_METER_HEAT_3",
                     ]
                     and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
@@ -426,9 +429,10 @@ class ToonSmartMeterSensor(SensorEntity):
                     in [
                         "HAE_METER_v3_8",
                         "HAE_METER_v4_8",
+                        "HAE_METER_HEAT_1",
                     ]
                     and safe_get(
-                        energy, [key, "CurrentElectricityQuantity"], default="NaN"
+                        energy, [key, "CurrentHeatQuantity"], default="NaN"
                     )
                     != "NaN"
                 ):
