@@ -36,7 +36,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle, dt
 
 BASE_URL = "http://{0}:{1}/hdrv_zwave?action=getDevices.json"
-
+DEVICE_CLASS_WATER = "water"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -189,7 +189,8 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="P1 waterquantity",
         native_unit_of_measurement=VOLUME_CUBIC_METERS,
         icon="mdi:water",
-        state_class=STATE_CLASS_MEASUREMENT,
+        device_class=DEVICE_CLASS_WATER,
+        state_class=STATE_CLASS_TOTAL_INCREASING,
     ),
     SensorEntityDescription(
         key="waterflow",
@@ -648,3 +649,4 @@ def safe_get(_dict, keys, default=None):
         return default
 
     return reduce(_reducer, keys, _dict)
+
