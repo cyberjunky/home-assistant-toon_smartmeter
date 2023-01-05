@@ -24,6 +24,7 @@ from homeassistant.const import (
     CONF_RESOURCES,
     ENERGY_KILO_WATT_HOUR,
     POWER_WATT,
+    VOLUME_LITERS,
     VOLUME_CUBIC_METERS,
 )
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -184,8 +185,8 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         key="waterquantity",
         name="P1 waterquantity",
         icon="mdi:water",
-        native_unit_of_measurement=VOLUME_CUBIC_METERS,
-        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=VOLUME_LITERS,
+        device_class=SensorDeviceClass.WATER,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     SensorEntityDescription(
@@ -193,7 +194,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="P1 waterflow",
         icon="mdi:water-pump",
         unit_of_measurement = "l/m",
-        device_class=SensorDeviceClass.ENERGY,
+        device_class=SensorDeviceClass.WATER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
