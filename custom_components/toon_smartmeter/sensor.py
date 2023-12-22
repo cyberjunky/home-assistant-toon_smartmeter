@@ -121,7 +121,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
     ),
     SensorEntityDescription(
         key="elecusagecntpulse",
-        name="P1 Power Use Cnt",
+        name="Power Use Cnt",
         icon="mdi:flash",
         native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
