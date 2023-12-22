@@ -113,35 +113,14 @@ sensor:
         value_template: "{{ states('sensor.toon_p1_power_use_low') | int + states('sensor.toon_p1_power_use_high') | int }}"
 ```
 ### Calculate Gas used today
+```
+utility_meter:
+  gasverbruik_vandaag:
+    name: "Gas Verbruik Vandaag"
+    source: sensor.toon_gas_used_cnt
+    cycle: daily
+```
 
-This stores the gas used value at midnight and calculate todays usage.  
-Creating a numeric helper, for example input_number.gasmeter_stand_gisteren  
-And an automation to store the current gas usage at midnight.
-```
-alias: Gasmeter stand opslaan
-description: ""
-trigger:
-  - platform: time
-    at: "23:59:59"
-condition: []
-action:
-  - service: input_number.set_value
-    data:
-      value: "{{ states('sensor.toon_gas_used_cnt') }}"
-    target:
-      entity_id: input_number.gasmeter_stand_gisteren
-    alias: Onthoud gasmeterstand
-mode: single
-Then add this template sensor to the configuration.yaml and use this new entity sensor.gas_verbruik_vandaag in your dashboard.
-sensor:
-  - platform: template
-    sensors:
-      gas_verbruik_vandaag:
-        friendly_name: "Gasverbruik vandaag"
-        unit_of_measurement: 'm3'
-        icon_template: mdi:meter-gas
-        value_template: "{{ (states('sensor.toon_gas_used_cnt') | float - states('input_number.gasmeter_stand_gisteren')
-```
 ## Debugging
 
 Add the relevant lines below to the `configuration.yaml`:
