@@ -99,6 +99,19 @@ Smart Meter:
 You can configure your dashboard like so:
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/dashboard.png?raw=true "Screenshot Toon Energy Dashboard")
 
+## Tricks
+If you want to get usage of your house, disregarding tarif, do this:
+```
+sensor:
+  - platform: template
+    sensors:
+      energie_verbruik_totaal:
+        friendly_name: "Energieverbruik"
+        unit_of_measurement: 'W'
+        icon_template: mdi:lightning-bolt
+        value_template: "{{ states('sensor.toon_p1_power_use_low') | int + states('sensor.toon_p1_power_use_high') | int }}"
+```
+
 ## Debugging
 
 Add the relevant lines below to the `configuration.yaml`:
