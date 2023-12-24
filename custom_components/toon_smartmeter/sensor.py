@@ -328,7 +328,7 @@ class ToonSmartMeterSensor(SensorEntity):
                 """elec verbruik pulse"""
                 if (
                     key in ["dev_2.2", "dev_3.2", "dev_4.2", "dev_7.2", "dev_9.2"]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
                     != "NaN"
@@ -339,7 +339,7 @@ class ToonSmartMeterSensor(SensorEntity):
                 """gas verbruik"""
                 if (
                     dev["type"] in ["gas", "HAE_METER_v2_1", "HAE_METER_v3_1", "HAE_METER_v4_1"]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(energy, [key, "CurrentGasQuantity"], default="NaN")
+                    and safe_get(energy, [key, "CurrentGasQuantity"], default="NaN")
                     != "NaN"
                 ):
                     self._dev_id["gasused"] = key
@@ -356,7 +356,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v4_6",
                         "HAE_METER_HEAT_5",
                     ]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
                     != "NaN"
@@ -375,7 +375,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v4_4",
                         "HAE_METER_HEAT_3",
                     ]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
                     != "NaN"
@@ -393,7 +393,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v4_7",
                         "HAE_METER_HEAT_6",
                     ]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
                     != "NaN"
@@ -411,7 +411,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v4_5",
                         "HAE_METER_HEAT_4",
                     ]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
                     != "NaN"
@@ -426,7 +426,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v3_3",
                         "HAE_METER_v4_3",
                     ]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentElectricityQuantity"], default="NaN"
                     )
                     != "NaN"
@@ -442,7 +442,7 @@ class ToonSmartMeterSensor(SensorEntity):
                         "HAE_METER_v4_8",
                         "HAE_METER_HEAT_1",
                     ]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentHeatQuantity"], default="NaN"
                     )
                     != "NaN"
@@ -455,7 +455,7 @@ class ToonSmartMeterSensor(SensorEntity):
                     in [
                         "HAE_METER_v4_9",
                     ]
-                    and dev["CurrentSensorStatus"] == "OPERATIONAL" and safe_get(
+                    and safe_get(
                         energy, [key, "CurrentWaterQuantity"], default="NaN"
                     )
                     != "NaN"
