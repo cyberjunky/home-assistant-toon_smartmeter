@@ -92,8 +92,8 @@ Smart Meter:
   - sensor.toon_p1_waterquantity
 
 Power Plugs:
-  - sensor.toon_powerplug_power_use_koffiestekker
-  - sensor.toon_powerplug_power_use_cnt_koffiestekker
+  - sensor.toon_koffiestekker_powerplug_power_use
+  - sensor.toon_koffiestekker_powerplug_power_use_cnt
 ```
 
 ## Screenshots
