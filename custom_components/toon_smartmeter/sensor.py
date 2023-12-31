@@ -306,8 +306,8 @@ class ToonSmartMeterSensor(SensorEntity):
         self.powerplug_name = powerplug
 
         if self._entity_description.key in ["powerplugflow", "powerplugcnt"]:
-            self._attr_name = f"{SENSOR_PREFIX} {self._entity_description.name} {self.powerplug_name}"
-            self._attr_unique_id = f"{SENSOR_PREFIX}_{self._entity_description.name}_{self.powerplug_name}"
+            self._attr_name = f"{SENSOR_PREFIX} {self.powerplug_name} {self._entity_description.name}"
+            self._attr_unique_id = f"{SENSOR_PREFIX}_{self.powerplug_name}_{self._entity_description.name}"
         else:
             self._attr_name = f"{SENSOR_PREFIX} {self._entity_description.name}"
             self._attr_unique_id = f"{SENSOR_PREFIX}_{self._entity_description.name}"
