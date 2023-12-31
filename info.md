@@ -38,6 +38,9 @@ sensor:
       - heat
       - waterflow
       - waterquantity
+  powerplugs:
+      - KoffieStekker
+      - Server
 ```
 
 Configuration variables:
@@ -46,6 +49,7 @@ Configuration variables:
 - **port** (*Optional*): Port used by your Toon. (default = 80)
 - **scan_interval** (*Optional*): Number of seconds between polls. (default = 10)
 - **resources** (*Required*): This section tells the component which values to display, you can leave out the elecprod values if your don't generate power and the elecusage*pulse types if you use the P1 connection.
+- **powerplugs** (*Optional*): This section holds any connected power plugs, just enter it's name.  
 
 ![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-badges.png?raw=true "Toon Smart Meter Badges")
 
@@ -73,6 +77,10 @@ Smart Meter:
   - sensor.toon_p1_heat
   - sensor.toon_p1_waterquantity
   - sensor.toon_p1_waterflow
+
+Power Plugs:
+  - sensor.toon_koffiestekker_powerplug_power_use
+  - sensor.toon_koffiestekker_powerplug_power_use_cnt
 ```
 
 ## Screenshots
