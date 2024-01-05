@@ -84,6 +84,7 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         icon="mdi:flash",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="elecusageflowlow",
@@ -255,43 +256,28 @@ class ToonSmartMeterData(object):
 
         self._session = session
         self._url = BASE_URL.format(host, port)
-        self._data = None
+        self.data = {}
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         """Download and update data from Toon."""
 
         try:
-            with async_timeout.timeout(5):
+            async with async_timeout.timeout(5):
                 response = await self._session.get(
                     self._url, headers={"Accept-Encoding": "identity"}
                 )
+            self.data = await response.json(content_type="text/javascript")
+            _LOGGER.debug("Data received from Toon: %s", self.data)
         except aiohttp.ClientError:
-            _LOGGER.error("Cannot poll Toon using url: %s", self._url)
-            return
+            _LOGGER.error("Cannot connect to Toon using url '%s'", self._url)
         except asyncio.TimeoutError:
             _LOGGER.error(
-                "Timeout error occurred while polling Toon using url: %s", self._url
+                "Timeout error occurred while connecting to Toon using url '%s'",
+                self._url
             )
-            return
-        except Exception as err:
-            _LOGGER.error("Unknown error occurred while polling Toon: %s", err)
-            self._data = None
-            return
-
-        try:
-            self._data = await response.json(content_type="text/javascript")
-            _LOGGER.debug("Data received from Toon: %s", self._data)
-        except Exception as err:
-            _LOGGER.error("Cannot parse data received from Toon: %s", err)
-            self._data = None
-
-    @property
-    def latest_data(self):
-        """Return the latest data object."""
-        if self._data:
-            return self._data
-        return None
+        except (TypeError, KeyError) as err:
+            _LOGGER.error(f"Cannot parse data received from Toon: %s", err)
 
 
 class ToonSmartMeterSensor(SensorEntity):
@@ -339,7 +325,7 @@ class ToonSmartMeterSensor(SensorEntity):
         """Get the latest data and use it to update our sensor state."""
 
         await self._data.async_update()
-        energy = self._data.latest_data
+        energy = self._data.data
 
         if not energy:
             return
@@ -446,6 +432,7 @@ class ToonSmartMeterSensor(SensorEntity):
                 if (
                     dev["type"]
                     in [
+                        "elec_solar",
                         "HAE_METER_v3_3",
                         "HAE_METER_v4_3",
                     ]
@@ -459,8 +446,9 @@ class ToonSmartMeterSensor(SensorEntity):
 
                 """heat"""
                 if (
-                    dev["type"]
+                    dev["name"]
                     in [
+                        "heat",
                         "HAE_METER_v3_8",
                         "HAE_METER_v4_8",
                         "HAE_METER_HEAT_1",
