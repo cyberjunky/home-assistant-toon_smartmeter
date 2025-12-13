@@ -117,7 +117,7 @@ template:
       default_entity_id: sensor.energie_verbruik_totaal
       icon: mdi:lightning-bolt
       name: Energieverbruik
-      state: '{{ states(''sensor.toon_p1_power_use_low'') | int + states(''sensor.toon_p1_power_use_high'') | int }}'
+      state: "{{ states('sensor.toon_p1_power_use_low') | int + states('sensor.toon_p1_power_use_high') | int }}"
 ```
 ### Calculate Gas used today
 ```
