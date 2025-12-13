@@ -111,14 +111,13 @@ You can configure your dashboard like so:
 
 ### Get usage of your house, disregarding current tarif
 ```
-sensor:
-  - platform: template
-    sensors:
-      energie_verbruik_totaal:
-        friendly_name: "Energieverbruik"
-        unit_of_measurement: 'W'
-        icon_template: mdi:lightning-bolt
-        value_template: "{{ states('sensor.toon_p1_power_use_low') | int + states('sensor.toon_p1_power_use_high') | int }}"
+template:
+  - sensor:
+    - unit_of_measurement: W
+      default_entity_id: sensor.energie_verbruik_totaal
+      icon: mdi:lightning-bolt
+      name: Energieverbruik
+      state: '{{ states(''sensor.toon_p1_power_use_low'') | int + states(''sensor.toon_p1_power_use_high'') | int }}'
 ```
 ### Calculate Gas used today
 ```
