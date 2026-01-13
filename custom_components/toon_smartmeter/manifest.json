@@ -1,10 +1,14 @@
 {
   "domain": "toon_smartmeter",
   "name": "Toon Smart Meter",
-  "version": "1.0.38",
+  "codeowners": [
+    "@cyberjunky"
+  ],
+  "config_flow": true,
+  "dependencies": [],
   "documentation": "https://github.com/cyberjunky/home-assistant-toon_smartmeter",
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/cyberjunky/home-assistant-toon_smartmeter/issues",
   "requirements": [],
-  "dependencies": [],
-  "codeowners": ["@cyberjunky"]
+  "version": "2.0.0"
 }

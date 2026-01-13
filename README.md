@@ -1,136 +1,140 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)  [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
 
-## Toon Smart Meter Sensor Component
-This is a Custom Component for Home-Assistant (https://home-assistant.io) reads and displays sensor values from the meteradapter connected to a rooted Toon thermostat.
+# Toon Smart Meter Custom Integration
 
-NOTE: This component only works with rooted Toon devices.
-Toon thermostats are available in The Netherlands and Belgium (as Boxx).
+A Home Assistant custom integration that reads and displays sensor values from the meter adapter connected to a rooted Toon thermostat. Get real-time insights into gas usage, electricity consumption, solar production, and more.
+
+> **Note:** This integration only works with **rooted Toon devices**.
+> Toon thermostats are available in The Netherlands and Belgium (as Boxx).
 
 More information about rooting your Toon can be found here:
 [Eneco Toon as Domotica controller](http://www.domoticaforum.eu/viewforum.php?f=87)
 
+## Supported Features
+
+Monitor your smart meter with these sensors:
+
+- **Gas Used Last Hour** - Current gas flow
+- **Gas Used Total** - Total gas consumption
+- **Power Use** - Current electricity usage (pulse)
+- **P1 Power Use Low/High** - Electricity usage by tariff
+- **P1 Power Prod Low/High** - Electricity production by tariff
+- **Energy counters** - Total consumption/production by tariff
+- **Solar Power/Energy** - Solar production (if available)
+- **Heat** - District heating (if available)
+- **Water Flow/Quantity** - Water usage (if available)
+
+All sensors are created automatically and grouped under a single device. Disable sensors you don't need via entity settings.
+
+## Screenshots
+
+![Toon Smart Meter](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter.png?raw=true)
+
 ## Installation
 
-### HACS - Recommended
-- Have [HACS](https://hacs.xyz) installed, this will allow you to easily manage and track updates.
-- Search for 'Toon Smart Meter'.
-- Click Install below the found integration.
-- Configure using the configuration instructions below.
-- Restart Home-Assistant.
+### HACS (Recommended)
 
-### Manual
-- Copy directory `custom_components/toon_smartmeter` to your `<config dir>/custom_components` directory.
-- Configure with config below.
-- Restart Home-Assistant.
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cyberjunky&repository=home-assistant-toon_smartmeter&category=integration)
 
-## Usage
-To use this component in your installation, add the following to your `configuration.yaml` file:
+Alternatively:
+
+1. Install [HACS](https://hacs.xyz) if not already installed
+2. Search for "Toon Smart Meter" in HACS
+3. Click **Download**
+4. Restart Home Assistant
+5. Add via Settings → Devices & Services
+
+### Manual Installation
+
+1. Copy the `custom_components/toon_smartmeter` folder to your `<config>/custom_components/` directory
+2. Restart Home Assistant
+3. Add via Settings → Devices & Services
+
+## Configuration
+
+### Adding the Integration
+
+1. Navigate to **Settings** → **Devices & Services**
+2. Click **+ Add Integration**
+3. Search for **"Toon Smart Meter"**
+4. Enter your configuration:
+   - **Host**: Your Toon's IP address
+   - **Port**: Default is `80`
+   - **Name**: Friendly name prefix (default: "Toon")
+   - **Update Interval**: Seconds between updates (default: `10`)
+
+The integration validates your connection and creates all sensors automatically.
+
+### Migrating from YAML
+
+> **Note:** YAML configuration is deprecated as of v2.0.0
+
+If you previously configured this integration in `configuration.yaml`, your settings will be **automatically imported** on your first restart after updating.
+
+**Your old YAML config** (will be migrated):
 
 ```yaml
-# Example configuration.yaml entry
-
 sensor:
   - platform: toon_smartmeter
-    host: IP_ADDRESS
+    host: 192.168.1.100
     port: 80
     scan_interval: 10
     resources:
       - gasused
       - gasusedcnt
-      - elecusageflowpulse
-      - elecusagecntpulse
-      - elecusageflowlow
-      - elecusagecntlow
-      - elecusageflowhigh
-      - elecusagecnthigh
-      - elecprodflowlow
-      - elecprodcntlow
-      - elecprodflowhigh
-      - elecprodcnthigh
-      - elecsolar
-      - elecsolarcnt
-      - heat
-      - waterflow
-      - waterquantity
-    powerplugs:
-      - KoffieStekker
-      - Server
+      ...
 ```
 
-Configuration variables:
+**After migration:**
 
-- **host** (*Required*): The IP address on which the Toon can be reached.
-- **port** (*Optional*): Port used by your Toon. (default = 80)
-- **scan_interval** (*Optional*): Number of seconds between polls. (default = 10)
-- **resources** (*Required*): This section tells the component which values to display, you can leave out the elecprod values if your don't generate power and the elecusage*pulse types if you use the P1 connection.
-- **powerplugs** (*Optional*): This section holds any connected power plugs, just enter it's name.
+1. Remove the YAML configuration from `configuration.yaml`
+2. Manage all settings via **Settings** → **Devices & Services** → **Toon Smart Meter** → **Configure**
+3. Disable unwanted sensors through entity settings
 
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-badges.png?raw=true "Toon Smart Meter Badges")
+### Modifying Settings
 
-If you want them grouped instead of having the separate sensor badges, you can use this in your `groups.yaml`:
+Change integration settings without restarting Home Assistant:
 
-```yaml
-# Example groups.yaml entry
-
-Smart Meter:
-  - sensor.toon_gas_used_last_hour
-  - sensor.toon_gas_used_cnt
-  - sensor.toon_power_use_cnt
-  - sensor.toon_power_use
-  - sensor.toon_p1_power_prod_low
-  - sensor.toon_p1_power_prod_high
-  - sensor.toon_p1_power_prod_cnt_low
-  - sensor.toon_p1_power_prod_cnt_high
-  - sensor.toon_p1_power_use_cnt_pulse
-  - sensor.toon_p1_power_use_cnt_low
-  - sensor.toon_p1_power_use_cnt_high
-  - sensor.toon_p1_power_use_low
-  - sensor.toon_p1_power_use_high
-  - sensor.toon_p1_power_solar
-  - sensor.toon_p1_power_solar_cnt
-  - sensor.toon_p1_heat
-  - sensor.toon_p1_waterflow
-  - sensor.toon_p1_waterquantity
-
-Power Plugs:
-  - sensor.toon_koffiestekker_powerplug_power_use
-  - sensor.toon_koffiestekker_powerplug_power_use_cnt
-```
-
-## Screenshots
-
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter.png?raw=true "Screenshot Toon Smart Meter")
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-gasused.png?raw=true "Screenshot Toon Graph Gas Used")
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter-graph-poweruselow.png?raw=true "Screenshot Toon Graph Power Use Low")
+1. Go to **Settings** → **Devices & Services**
+2. Find **Toon Smart Meter**
+3. Click **Configure** icon
+4. Modify name or scan interval
+5. Click **Submit**
 
 ## Energy Dashboard
-You can configure your dashboard like so:
-![alt text](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/dashboard.png?raw=true "Screenshot Toon Energy Dashboard")
 
-## Tricks
+You can configure your Energy Dashboard like so:
 
-### Get usage of your house, disregarding current tarif
-```
+![Energy Dashboard](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/dashboard.png?raw=true)
+
+## Advanced Usage
+
+### Get Total Power Usage (Both Tariffs)
+
+```yaml
 template:
   - sensor:
     - unit_of_measurement: W
-      default_entity_id: sensor.energie_verbruik_totaal
+      name: Total Power Usage
       icon: mdi:lightning-bolt
-      name: Energieverbruik
-      state: "{{ states('sensor.toon_p1_power_use_low') | int + states('sensor.toon_p1_power_use_high') | int }}"
+      state: "{{ states('sensor.toon_smart_meter_p1_power_use_low') | int + states('sensor.toon_smart_meter_p1_power_use_high') | int }}"
 ```
-### Calculate Gas used today
-```
+
+### Calculate Gas Used Today
+
+```yaml
 utility_meter:
-  gasverbruik_vandaag:
-    name: "Gas Verbruik Vandaag"
-    source: sensor.toon_gas_used_cnt
+  gas_used_today:
+    name: "Gas Used Today"
+    source: sensor.toon_smart_meter_gas_used_total
     cycle: daily
 ```
 
-## Debugging
+## Troubleshooting
 
-Add the relevant lines below to the `configuration.yaml`:
+### Enable Debug Logging
+
+Add the following to your `configuration.yaml`:
 
 ```yaml
 logger:
@@ -139,5 +143,18 @@ logger:
     custom_components.toon_smartmeter: debug
 ```
 
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| Cannot connect | Verify IP address and ensure Toon is rooted and accessible |
+| Sensors unavailable | Some sensors only appear if the corresponding meter is connected |
+| Missing gas/water sensors | These require specific meter adapters connected to the Toon |
+
 ## Donation
+
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.

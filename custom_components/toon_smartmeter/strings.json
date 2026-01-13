@@ -1,0 +1,102 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Configure Toon Smart Meter",
+                "description": "Enter the connection details for your rooted Toon thermostat.",
+                "data": {
+                    "host": "Host",
+                    "port": "Port",
+                    "name": "Name",
+                    "scan_interval": "Update Interval (seconds)"
+                },
+                "data_description": {
+                    "host": "IP address of your rooted Toon device",
+                    "port": "Port number (default: 80)",
+                    "name": "Display name for the smart meter sensors",
+                    "scan_interval": "How often to poll for updates (default: 10 seconds)"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Failed to connect to Toon. Please check the IP address and port.",
+            "invalid_data": "Invalid data received from Toon. Device may not be accessible.",
+            "unknown": "Unexpected error occurred."
+        },
+        "abort": {
+            "already_configured": "This Toon device is already configured.",
+            "cannot_connect": "Failed to connect during YAML import."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Configure Toon Smart Meter Options",
+                "description": "Modify the settings for your Toon Smart Meter integration.",
+                "data": {
+                    "name": "Name",
+                    "scan_interval": "Update interval (seconds)"
+                },
+                "data_description": {
+                    "name": "Display name for the smart meter sensors",
+                    "scan_interval": "How often to poll for updates (default: 10 seconds)"
+                }
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "gasused": {
+                "name": "Gas Used Last Hour"
+            },
+            "gasusedcnt": {
+                "name": "Gas Used Total"
+            },
+            "elecusageflowpulse": {
+                "name": "Power Use"
+            },
+            "elecusageflowlow": {
+                "name": "Power Use Low Tariff"
+            },
+            "elecusageflowhigh": {
+                "name": "Power Use High Tariff"
+            },
+            "elecprodflowlow": {
+                "name": "Power Production Low Tariff"
+            },
+            "elecprodflowhigh": {
+                "name": "Power Production High Tariff"
+            },
+            "elecusagecntpulse": {
+                "name": "Energy Use Total"
+            },
+            "elecusagecntlow": {
+                "name": "Energy Use Low Tariff"
+            },
+            "elecusagecnthigh": {
+                "name": "Energy Use High Tariff"
+            },
+            "elecprodcntlow": {
+                "name": "Energy Production Low Tariff"
+            },
+            "elecprodcnthigh": {
+                "name": "Energy Production High Tariff"
+            },
+            "elecsolar": {
+                "name": "Solar Power"
+            },
+            "elecsolarcnt": {
+                "name": "Solar Energy Total"
+            },
+            "heat": {
+                "name": "Heat"
+            },
+            "waterquantity": {
+                "name": "Water Quantity"
+            },
+            "waterflow": {
+                "name": "Water Flow"
+            }
+        }
+    }
+}
