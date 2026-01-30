@@ -1,14 +1,14 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)  [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
+[![GitHub Release][releases-shield]][releases]
+[![GitHub Activity][commits-shield]][commits]
+[![License][license-shield]](LICENSE)
+![Project Maintenance][maintenance-shield]
+
+[![Donate via PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=for-the-badge&logo=paypal)](https://www.paypal.me/cyberjunkynl/)
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-red.svg?style=for-the-badge&logo=github)](https://github.com/sponsors/cyberjunky)
 
 # Toon Smart Meter Custom Integration
 
-A Home Assistant custom integration that reads and displays sensor values from the meter adapter connected to a rooted Toon thermostat. Get real-time insights into gas usage, electricity consumption, solar production, and more.
-
-> **Note:** This integration only works with **rooted Toon devices**.
-> Toon thermostats are available in The Netherlands and Belgium (as Boxx).
-
-More information about rooting your Toon can be found here:
-[Eneco Toon as Domotica controller](http://www.domoticaforum.eu/viewforum.php?f=87)
+A Home Assistant custom integration that reads sensor values from the meter adapter connected to a rooted Toon thermostat. Get real-time insights into gas usage, electricity consumption, solar production, and more.
 
 ## Supported Features
 
@@ -16,19 +16,27 @@ Monitor your smart meter with these sensors:
 
 - **Gas Used Last Hour** - Current gas flow
 - **Gas Used Total** - Total gas consumption
-- **Power Use** - Current electricity usage (pulse)
+- **P1 Power Use** - Total electricity usage (all tariffs combined)
 - **P1 Power Use Low/High** - Electricity usage by tariff
+- **P1 Power Prod** - Total electricity production (all tariffs combined)
 - **P1 Power Prod Low/High** - Electricity production by tariff
-- **Energy counters** - Total consumption/production by tariff
+- **Energy counters** - Total consumption/production
 - **Solar Power/Energy** - Solar production (if available)
 - **Heat** - District heating (if available)
 - **Water Flow/Quantity** - Water usage (if available)
 
-All sensors are created automatically and grouped under a single device. Disable sensors you don't need via entity settings.
+All sensors are created by default and grouped under a single device for easy management.
 
 ## Screenshots
 
-![Toon Smart Meter](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/toon-smartmeter.png?raw=true)
+![Toon Smart Meter Integration](screenshots/toon-smartmeter.png)
+
+## Requirements
+
+- **Rooted Toon thermostat** (available in the Netherlands and Belgium as Boxx)
+- Network access to your Toon device
+
+For rooting instructions, visit the [Eneco Toon Domotica Forum](http://www.domoticaforum.eu/viewforum.php?f=87).
 
 ## Installation
 
@@ -63,7 +71,7 @@ Alternatively:
    - **Name**: Friendly name prefix (default: "Toon")
    - **Update Interval**: Seconds between updates (default: `10`)
 
-The integration validates your connection and creates all sensors automatically.
+The integration validates your connection and creates all sensors automatically. Disable sensors you don't need via **Settings** → **Devices & Services** → **Toon Smart Meter** → click a sensor → cogwheel icon → "Enable entity" toggle.
 
 ### Migrating from YAML
 
@@ -79,7 +87,7 @@ sensor:
     host: 192.168.1.100
     port: 80
     scan_interval: 10
-    resources:
+    resources:  # Ignored - all sensors are now created
       - gasused
       - gasusedcnt
       ...
@@ -101,24 +109,15 @@ Change integration settings without restarting Home Assistant:
 4. Modify name or scan interval
 5. Click **Submit**
 
+Changes apply immediately. To enable/disable individual sensors, click on the sensor entity and toggle "Enable entity".
+
 ## Energy Dashboard
 
-You can configure your Energy Dashboard like so:
+Configure your Energy Dashboard for electricity and gas tracking:
 
-![Energy Dashboard](https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/screenshots/dashboard.png?raw=true)
+![Energy Dashboard](screenshots/dashboard.png)
 
 ## Advanced Usage
-
-### Get Total Power Usage (Both Tariffs)
-
-```yaml
-template:
-  - sensor:
-    - unit_of_measurement: W
-      name: Total Power Usage
-      icon: mdi:lightning-bolt
-      state: "{{ states('sensor.toon_smart_meter_p1_power_use_low') | int + states('sensor.toon_smart_meter_p1_power_use_high') | int }}"
-```
 
 ### Calculate Gas Used Today
 
@@ -130,11 +129,28 @@ utility_meter:
     cycle: daily
 ```
 
+### Automation Example
+
+Monitor electricity production:
+
+```yaml
+automation:
+  - alias: "High Solar Production"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.toon_smart_meter_p1_power_prod
+        above: 3000
+    action:
+      - service: notify.mobile_app
+        data:
+          message: "Solar production is high ({{ states('sensor.toon_smart_meter_p1_power_prod') }} W)"
+```
+
 ## Troubleshooting
 
 ### Enable Debug Logging
 
-Add the following to your `configuration.yaml`:
+Add to `configuration.yaml`:
 
 ```yaml
 logger:
@@ -143,18 +159,76 @@ logger:
     custom_components.toon_smartmeter: debug
 ```
 
+Alternatively, enable debug logging via the UI in **Settings** → **Devices & Services** → **Toon Smart Meter** → **Enable debug logging**.
+
 ### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| Cannot connect | Verify IP address and ensure Toon is rooted and accessible |
-| Sensors unavailable | Some sensors only appear if the corresponding meter is connected |
-| Missing gas/water sensors | These require specific meter adapters connected to the Toon |
+**Integration won't connect:**
 
-## Donation
+- Verify your Toon's IP address is correct
+- Ensure the Toon is rooted and accessible
+- Check that port 80 is accessible (try visiting `http://YOUR_TOON_IP/hdrv_zwave?action=getDevices.json` in a browser)
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/cyberjunkynl/)
+**Sensors show unavailable:**
+
+- Some sensors only appear if the corresponding meter is connected
+- Gas/water sensors require specific meter adapters
+- Check debug logs for "Discovered devices" message
+
+**Old YAML config not migrating:**
+
+- Check Home Assistant logs for import errors
+- Verify the YAML syntax is correct
+- Manually add via UI if automatic import fails
+
+## Development
+
+Quick-start (from project root):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements_lint.txt
+./scripts/lint    # runs pre-commit + vulture
+# or: ruff check .
+# to auto-fix: ruff check . --fix
+```
+
+## 💖 Support This Project
+
+If you find this integration useful, please consider supporting its continued development and maintenance:
+
+### 🌟 Ways to Support
+
+- **⭐ Star this repository** - Help others discover the project
+- **💰 Financial Support** - Contribute to development and hosting costs
+- **🐛 Report Issues** - Help improve stability and compatibility
+- **📖 Spread the Word** - Share with other developers
+
+### 💳 Financial Support Options
+
+[![Donate via PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=for-the-badge&logo=paypal)](https://www.paypal.me/cyberjunkynl/)
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-red.svg?style=for-the-badge&logo=github)](https://github.com/sponsors/cyberjunky)
+
+**Why Support?**
+
+- Keeps the project actively maintained
+- Enables faster bug fixes and new features
+- Supports testing infrastructure and CI/CD
+- Shows appreciation for development time
+
+Every contribution, no matter the size, makes a difference and is greatly appreciated! 🙏
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+[releases-shield]: https://img.shields.io/github/release/cyberjunky/home-assistant-toon_smartmeter.svg?style=for-the-badge
+[releases]: https://github.com/cyberjunky/home-assistant-toon_smartmeter/releases
+[commits-shield]: https://img.shields.io/github/commit-activity/y/cyberjunky/home-assistant-toon_smartmeter.svg?style=for-the-badge
+[commits]: https://github.com/cyberjunky/home-assistant-toon_smartmeter/commits/main
+[license-shield]: https://img.shields.io/github/license/cyberjunky/home-assistant-toon_smartmeter.svg?style=for-the-badge
+[maintenance-shield]: https://img.shields.io/badge/maintainer-cyberjunky-blue.svg?style=for-the-badge

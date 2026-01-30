@@ -26,9 +26,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def validate_connection(
-    hass: HomeAssistant, host: str, port: int
-) -> dict[str, Any]:
+async def validate_connection(hass: HomeAssistant, host: str, port: int) -> dict[str, Any]:
     """Validate the connection to Toon device."""
     session = async_get_clientsession(hass)
     url = BASE_URL.format(host, port)
@@ -56,9 +54,7 @@ class ToonSmartMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
 
@@ -137,9 +133,7 @@ class ToonSmartMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             },
             options={
                 CONF_NAME: import_config.get(CONF_NAME, DEFAULT_NAME),
-                CONF_SCAN_INTERVAL: import_config.get(
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                ),
+                CONF_SCAN_INTERVAL: import_config.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
             },
         )
 
@@ -155,9 +149,7 @@ class ToonSmartMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class ToonSmartMeterOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for Toon Smart Meter."""
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)

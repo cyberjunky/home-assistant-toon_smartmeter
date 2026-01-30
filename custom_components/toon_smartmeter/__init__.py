@@ -81,9 +81,7 @@ async def async_migrate_entities(hass: HomeAssistant, entry: ConfigEntry) -> Non
 
         # Try to find by old unique_id patterns
         for old_unique_id in old_unique_ids:
-            entity_id = entity_registry.async_get_entity_id(
-                "sensor", DOMAIN, old_unique_id
-            )
+            entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_unique_id)
 
             # Also check if it was registered without platform
             if not entity_id:

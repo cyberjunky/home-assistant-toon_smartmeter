@@ -45,9 +45,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ToonSmartMeterSensor(
-    CoordinatorEntity[ToonSmartMeterCoordinator], SensorEntity
-):
+class ToonSmartMeterSensor(CoordinatorEntity[ToonSmartMeterCoordinator], SensorEntity):
     """Representation of a Toon Smart Meter sensor."""
 
     _attr_has_entity_name = True
@@ -66,9 +64,7 @@ class ToonSmartMeterSensor(
         self._attr_unique_id = f"{entry.entry_id}_{description.key}"
 
         # Get device name from options (with fallback to data for migration)
-        device_name = entry.options.get(CONF_NAME) or entry.data.get(
-            CONF_NAME, DEFAULT_NAME
-        )
+        device_name = entry.options.get(CONF_NAME) or entry.data.get(CONF_NAME, DEFAULT_NAME)
 
         # Set device info for grouping
         self._attr_device_info = DeviceInfo(
@@ -92,11 +88,11 @@ class ToonSmartMeterSensor(
 
         # Check if this sensor's device has been discovered
         sensor_key = self.entity_description.key
-        
+
         # Pulse sensors don't have a device_id mapping
         if sensor_key in ["elecusageflowpulse", "elecusagecntpulse"]:
             return sensor_key in self.coordinator.device_ids
-        
+
         # Solar sensors may use export devices
         if sensor_key in ["elecsolar", "elecsolarcnt"]:
             # Available if we have the device OR if export devices exist
@@ -107,6 +103,6 @@ class ToonSmartMeterSensor(
                     if dev in self.coordinator.data:
                         return True
             return False
-        
+
         # For other sensors, check if device was discovered
         return sensor_key in self.coordinator.device_ids
