@@ -135,11 +135,12 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
 
             # === SOLAR DETECTION ===
-            if dev_type in ["HAE_METER_v3_3", "HAE_METER_v4_3"]:
+            # Solar can be: HAE_METER_v3_3, HAE_METER_v4_3, or semantic type "elec_solar"
+            if dev_type in ["HAE_METER_v3_3", "HAE_METER_v4_3", "elec_solar"]:
                 if self._has_valid_electricity(energy, key):
                     self.device_ids["elecsolar"] = key
                     self.device_ids["elecsolarcnt"] = key
-                    _LOGGER.debug("Solar meter detected: %s", key)
+                    _LOGGER.debug("Solar meter detected: %s (type: %s)", key, dev_type)
 
             # === HEAT DETECTION ===
             if self._has_valid_heat(energy, key):
@@ -184,59 +185,98 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         elec_delivered_meters: list[str],
         elec_produced_meters: list[str],
     ) -> None:
-        """Classify HAE_METER devices by their type suffix."""
-        # Extract version and suffix (e.g., "HAE_METER_v4_5" -> v4, 5)
+        """Classify HAE_METER devices by their type suffix.
+
+        Known mappings by meter version:
+        - v2: 3=high delivered, 4=high produced, 5=low delivered, 6=low produced
+        - v3: 3=solar, 4=high delivered, 5=low delivered, 6=high produced, 7=low produced
+        - v4: 3=solar, 4=high delivered, 5=high produced, 6=low delivered, 7=low produced
+        """
+        # Extract version and suffix (e.g., "HAE_METER_v4_5" -> "v4", "5")
         parts = dev_type.split("_")
         if len(parts) < 4:
             return
 
+        version = parts[2]  # "v2", "v3", or "v4"
         suffix = parts[-1]
 
-        # Mapping based on observed patterns:
-        # v2: 3=high delivered, 4=high produced, 5=low delivered, 6=low produced
-        # v3: 3=solar?, 4=high delivered, 5=high produced/low delivered, 6=low delivered, 7=low produced
-        # v4: 3=solar, 4=high delivered, 5=high produced, 6=low delivered, 7=low produced
-
-        # Delivered (consumption) meters
-        if suffix in ["3", "4"] and "v3_3" not in dev_type and "v4_3" not in dev_type:
-            # Skip v3_3 and v4_3 as they're often solar
-            if "elecusageflowhigh" not in self.device_ids:
-                self.device_ids["elecusageflowhigh"] = key
-                self.device_ids["elecusagecnthigh"] = key
-                elec_delivered_meters.append(key)
-                _LOGGER.debug("HAE meter high delivered: %s (%s)", key, dev_type)
-
-        elif suffix in ["5", "6"]:
-            # Could be low delivered OR high produced depending on version
-            # Check if high delivered already found - if so, this is likely low
-            if "elecusageflowhigh" in self.device_ids:
-                if "elecusageflowlow" not in self.device_ids:
-                    self.device_ids["elecusageflowlow"] = key
-                    self.device_ids["elecusagecntlow"] = key
-                    elec_delivered_meters.append(key)
-                    _LOGGER.debug("HAE meter low delivered: %s (%s)", key, dev_type)
+        # Version 2 has a specific mapping
+        if version == "v2":
+            if suffix == "3":
+                self._set_delivered_high(key, dev_type, elec_delivered_meters)
+            elif suffix == "4":
+                self._set_produced_high(key, dev_type, elec_produced_meters)
             elif suffix == "5":
-                # v4_5 is typically production high, but v2_5 is delivery low
-                if "v2_5" in dev_type or "v3_5" in dev_type or "v3_6" in dev_type:
-                    if "elecusageflowlow" not in self.device_ids:
-                        self.device_ids["elecusageflowlow"] = key
-                        self.device_ids["elecusagecntlow"] = key
-                        elec_delivered_meters.append(key)
-                        _LOGGER.debug("HAE meter low delivered: %s (%s)", key, dev_type)
-                else:
-                    if "elecprodflowhigh" not in self.device_ids:
-                        self.device_ids["elecprodflowhigh"] = key
-                        self.device_ids["elecprodcnthigh"] = key
-                        elec_produced_meters.append(key)
-                        _LOGGER.debug("HAE meter high produced: %s (%s)", key, dev_type)
+                self._set_delivered_low(key, dev_type, elec_delivered_meters)
+            elif suffix == "6":
+                self._set_produced_low(key, dev_type, elec_produced_meters)
+            return
 
-        # Production meters
-        if suffix == "7":
-            if "elecprodflowlow" not in self.device_ids:
-                self.device_ids["elecprodflowlow"] = key
-                self.device_ids["elecprodcntlow"] = key
-                elec_produced_meters.append(key)
-                _LOGGER.debug("HAE meter low produced: %s (%s)", key, dev_type)
+        # Version 3 mapping (same as v4 based on issue #7 data)
+        # v3_4 = verbruik hoog (high delivered)
+        # v3_5 = teruglevering hoog (high produced)
+        # v3_6 = verbruik laag (low delivered)
+        # v3_7 = teruglevering laag (low produced)
+        if version == "v3":
+            if suffix == "4":
+                self._set_delivered_high(key, dev_type, elec_delivered_meters)
+            elif suffix == "5":
+                self._set_produced_high(key, dev_type, elec_produced_meters)
+            elif suffix == "6":
+                self._set_delivered_low(key, dev_type, elec_delivered_meters)
+            elif suffix == "7":
+                self._set_produced_low(key, dev_type, elec_produced_meters)
+            return
+
+        # Version 4 mapping (and fallback for unknown versions)
+        if suffix == "4":
+            self._set_delivered_high(key, dev_type, elec_delivered_meters)
+        elif suffix == "5":
+            self._set_produced_high(key, dev_type, elec_produced_meters)
+        elif suffix == "6":
+            self._set_delivered_low(key, dev_type, elec_delivered_meters)
+        elif suffix == "7":
+            self._set_produced_low(key, dev_type, elec_produced_meters)
+
+    def _set_delivered_high(
+        self, key: str, dev_type: str, meters: list[str]
+    ) -> None:
+        """Set high tariff delivered (consumption) meter."""
+        if "elecusageflowhigh" not in self.device_ids:
+            self.device_ids["elecusageflowhigh"] = key
+            self.device_ids["elecusagecnthigh"] = key
+            meters.append(key)
+            _LOGGER.debug("HAE meter high delivered: %s (%s)", key, dev_type)
+
+    def _set_delivered_low(
+        self, key: str, dev_type: str, meters: list[str]
+    ) -> None:
+        """Set low tariff delivered (consumption) meter."""
+        if "elecusageflowlow" not in self.device_ids:
+            self.device_ids["elecusageflowlow"] = key
+            self.device_ids["elecusagecntlow"] = key
+            meters.append(key)
+            _LOGGER.debug("HAE meter low delivered: %s (%s)", key, dev_type)
+
+    def _set_produced_high(
+        self, key: str, dev_type: str, meters: list[str]
+    ) -> None:
+        """Set high tariff produced (return to grid) meter."""
+        if "elecprodflowhigh" not in self.device_ids:
+            self.device_ids["elecprodflowhigh"] = key
+            self.device_ids["elecprodcnthigh"] = key
+            meters.append(key)
+            _LOGGER.debug("HAE meter high produced: %s (%s)", key, dev_type)
+
+    def _set_produced_low(
+        self, key: str, dev_type: str, meters: list[str]
+    ) -> None:
+        """Set low tariff produced (return to grid) meter."""
+        if "elecprodflowlow" not in self.device_ids:
+            self.device_ids["elecprodflowlow"] = key
+            self.device_ids["elecprodcntlow"] = key
+            meters.append(key)
+            _LOGGER.debug("HAE meter low produced: %s (%s)", key, dev_type)
 
     def _has_valid_gas(self, energy: dict[str, Any], key: str) -> bool:
         """Check if device has valid gas data."""

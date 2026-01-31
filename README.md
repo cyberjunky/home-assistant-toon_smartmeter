@@ -29,7 +29,7 @@ All sensors are created by default and grouped under a single device for easy ma
 
 ## Screenshots
 
-![Toon Smart Meter Integration](screenshots/toon-smartmeter.png)
+![Toon Smart Meter Integration](screenshots/sensors.png)
 
 ## Requirements
 
