@@ -119,31 +119,136 @@ Configure your Energy Dashboard for electricity and gas tracking:
 
 ## Advanced Usage
 
-### Calculate Gas Used Today
+### Utility Meters for Daily/Monthly Tracking
+
+Track energy consumption per day, week, and month:
 
 ```yaml
 utility_meter:
-  gas_used_today:
+  electricity_daily:
+    name: "Electricity Used Today"
+    source: sensor.toon_smart_meter_p1_power_use_cnt
+    cycle: daily
+  
+  electricity_monthly:
+    name: "Electricity Used This Month"
+    source: sensor.toon_smart_meter_p1_power_use_cnt
+    cycle: monthly
+
+  gas_daily:
     name: "Gas Used Today"
-    source: sensor.toon_smart_meter_gas_used_total
+    source: sensor.toon_smart_meter_gas_used_cnt
     cycle: daily
 ```
 
-### Automation Example
+### Alert on High Energy Usage
 
-Monitor electricity production:
+Get notified when power consumption spikes (e.g., someone left an appliance on):
 
 ```yaml
 automation:
-  - alias: "High Solar Production"
+  - alias: "High Power Usage Alert"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.toon_smart_meter_p1_power_prod
+        entity_id: sensor.toon_smart_meter_p1_power_use
         above: 3000
+        for:
+          minutes: 10
     action:
       - service: notify.mobile_app
         data:
-          message: "Solar production is high ({{ states('sensor.toon_smart_meter_p1_power_prod') }} W)"
+          title: "⚡ High Power Usage"
+          message: "Power consumption at {{ states('sensor.toon_smart_meter_p1_power_use') }}W for 10 minutes"
+```
+
+### Detect Appliance Running
+
+Detect when the washing machine or dryer is running based on power patterns:
+
+```yaml
+template:
+  - binary_sensor:
+      - name: "Washing Machine Running"
+        state: >
+          {{ states('sensor.toon_smart_meter_p1_power_use') | float(0) > 200 }}
+        delay_off:
+          minutes: 5
+
+automation:
+  - alias: "Washing Machine Finished"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.washing_machine_running
+        from: "on"
+        to: "off"
+    action:
+      - service: notify.mobile_app
+        data:
+          message: "🧺 Washing machine cycle complete!"
+```
+
+### Solar Self-Consumption Optimization
+
+Automatically start devices when solar production exceeds consumption:
+
+```yaml
+template:
+  - sensor:
+      - name: "Net Power"
+        unit_of_measurement: "W"
+        state: >
+          {{ (states('sensor.toon_smart_meter_p1_power_use') | float(0)) - 
+             (states('sensor.toon_smart_meter_p1_power_prod') | float(0)) }}
+
+automation:
+  - alias: "Solar Surplus - Start EV Charging"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.toon_smart_meter_p1_power_prod
+        above: 2000
+        for:
+          minutes: 5
+    condition:
+      - condition: numeric_state
+        entity_id: sensor.toon_smart_meter_p1_power_use
+        below: 500
+    action:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.ev_charger
+```
+
+### Gas Heating Monitor
+
+Track gas usage when heating is active:
+
+```yaml
+automation:
+  - alias: "High Gas Usage Warning"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.toon_smart_meter_gas_used_last_hour
+        above: 2.0
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "🔥 High Gas Usage"
+          message: "Gas consumption: {{ states('sensor.toon_smart_meter_gas_used_last_hour') }} m³/h"
+```
+
+### Daily Energy Cost Calculation
+
+Calculate daily energy costs using a template sensor:
+
+```yaml
+template:
+  - sensor:
+      - name: "Today's Electricity Cost"
+        unit_of_measurement: "€"
+        state: >
+          {% set kwh = states('sensor.electricity_daily') | float(0) %}
+          {% set rate = 0.40 %}
+          {{ (kwh * rate) | round(2) }}
 ```
 
 ## Troubleshooting
