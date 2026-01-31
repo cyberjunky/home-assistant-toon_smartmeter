@@ -113,9 +113,7 @@ Changes apply immediately. To enable/disable individual sensors, click on the se
 
 ## Energy Dashboard
 
-Configure your Energy Dashboard for electricity and gas tracking:
-
-![Energy Dashboard](screenshots/dashboard.png)
+You can configure your Energy Dashboard for electricity, water and gas tracking by adding the separate sensors to the energy dashboard.
 
 ## Advanced Usage
 
