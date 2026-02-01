@@ -97,14 +97,14 @@ class ToonZWavePlugSwitch(CoordinatorEntity[ToonSmartMeterCoordinator], SwitchEn
         # Check if plug is still in the data
         return self._plug_id in self.coordinator.zwave_plugs
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **_kwargs: Any) -> None:
         """Turn the switch on."""
         success = await self.coordinator.async_set_plug_state(self._plug_id, True)
         if success:
             # Request a data refresh to get updated state
             await self.coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **_kwargs: Any) -> None:
         """Turn the switch off."""
         success = await self.coordinator.async_set_plug_state(self._plug_id, False)
         if success:
