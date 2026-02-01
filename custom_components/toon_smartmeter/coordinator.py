@@ -12,7 +12,7 @@ import async_timeout
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import BASE_URL, DOMAIN
+from .const import BASE_URL, DOMAIN, ZWAVE_CONTROL_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +48,9 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Device discovery mapping - populated during first update
         self.device_ids: dict[str, str] = {}
 
+        # Z-Wave power plugs - key is device id (e.g., "dev_4"), value is plug info
+        self.zwave_plugs: dict[str, dict[str, Any]] = {}
+
         super().__init__(
             hass,
             _LOGGER,
@@ -70,7 +73,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if not self.device_ids and data:
                     self._discover_devices(data)
 
-                return data
+                return dict(data)
         except aiohttp.ClientError as err:
             raise UpdateFailed(f"Error communicating with Toon at {self._url}: {err}") from err
         except TimeoutError as err:
@@ -154,6 +157,19 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     self.device_ids["waterquantity"] = key
                     self.device_ids["waterflow"] = key
                     _LOGGER.debug("Water meter detected: %s", key)
+
+            # === Z-WAVE POWERPLUG DETECTION ===
+            # Plugs have TargetStatus (for on/off control) AND electricity data
+            # This distinguishes them from meters which don't have TargetStatus
+            if self._is_zwave_plug(energy, key):
+                plug_name = dev.get("DeviceName") or dev.get("name", key)
+                self.zwave_plugs[key] = {
+                    "name": plug_name,
+                    "uuid": dev.get("uuid", ""),
+                    "type": dev_type,
+                    "internal_address": dev.get("internalAddress", ""),
+                }
+                _LOGGER.debug("Z-Wave plug detected: %s (%s, type: %s)", key, plug_name, dev_type)
 
         # Check for pulse devices
         for dev in ["dev_3.2", "dev_2.2", "dev_4.2", "dev_7.2"]:
@@ -394,10 +410,10 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Get solar electricity flow."""
         for dev in ["dev_4.export", "dev_3.export", "dev_7.export", "dev_14.export"]:
             if dev in energy:
-                return energy[dev]["CurrentElectricityFlow"]
+                return float(energy[dev]["CurrentElectricityFlow"])
         device_id = self.device_ids.get("elecsolar")
         if device_id and device_id in energy:
-            return energy[device_id]["CurrentElectricityFlow"]
+            return float(energy[device_id]["CurrentElectricityFlow"])
         return None
 
     def _get_solar_quantity(self, energy: dict[str, Any]) -> Any:
@@ -461,3 +477,122 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     has_valid = True
 
         return total if has_valid else None
+
+    def _is_zwave_plug(self, energy: dict[str, Any], key: str) -> bool:
+        """Check if device is a Z-Wave power plug.
+
+        Z-Wave plugs are identified by having both:
+        - TargetStatus field (for on/off control) - meters don't have this
+        - CurrentElectricityFlow field (for power measurement)
+        """
+        dev = energy.get(key, {})
+        has_target_status = "TargetStatus" in dev
+        has_elec_flow = "CurrentElectricityFlow" in dev
+        # Exclude HAE_METER types which are not plugs
+        dev_type = dev.get("type", "")
+        is_meter = dev_type.startswith("HAE_METER")
+        return has_target_status and has_elec_flow and not is_meter
+
+    def get_plug_power(self, plug_id: str) -> float | None:
+        """Get current power usage of a Z-Wave plug in Watts."""
+        if not self.data or plug_id not in self.data:
+            return None
+        try:
+            value = self.data[plug_id].get("CurrentElectricityFlow")
+            return self._validate_output(value)
+        except (KeyError, TypeError, ValueError):
+            return None
+
+    def get_plug_energy(self, plug_id: str) -> float | None:
+        """Get total energy consumption of a Z-Wave plug in kWh."""
+        if not self.data or plug_id not in self.data:
+            return None
+        try:
+            value = self.data[plug_id].get("CurrentElectricityQuantity")
+            validated = self._validate_output(value)
+            return validated / 1000 if validated is not None else None
+        except (KeyError, TypeError, ValueError):
+            return None
+
+    def get_plug_state(self, plug_id: str) -> bool | None:
+        """Get the on/off state of a Z-Wave plug."""
+        if not self.data or plug_id not in self.data:
+            return None
+        try:
+            target_status = self.data[plug_id].get("TargetStatus")
+            if target_status is None:
+                return None
+            return str(target_status) == "1"
+        except (KeyError, TypeError):
+            return None
+
+    async def async_set_plug_state(self, plug_id: str, state: bool) -> bool:
+        """Turn a Z-Wave plug on or off.
+
+        Args:
+            plug_id: The device ID (e.g., "dev_4")
+            state: True for on, False for off
+
+        Returns:
+            True if command was sent successfully, False otherwise
+        """
+        plug_info = self.zwave_plugs.get(plug_id)
+        if not plug_info:
+            _LOGGER.error("Unknown Z-Wave plug: %s", plug_id)
+            return False
+
+        node_id = plug_info.get("internal_address", "")
+        if not node_id:
+            _LOGGER.error("No internal address for plug: %s", plug_id)
+            return False
+
+        url = ZWAVE_CONTROL_URL.format(self.host, self.port)
+        state_value = "1" if state else "0"
+        data = f"action=basicCommand&nodeID={node_id}&state={state_value}"
+
+        try:
+            async with async_timeout.timeout(10):
+                response = await self._session.post(
+                    url,
+                    data=data,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+                response.raise_for_status()
+                _LOGGER.debug("Set plug %s state to %s", plug_id, state)
+                # Note: We don't call GetBasic here to avoid race conditions.
+                # The normal coordinator refresh will pick up the new state.
+                return True
+        except (aiohttp.ClientError, TimeoutError) as err:
+            _LOGGER.error("Error setting plug %s state: %s", plug_id, err)
+            return False
+
+    async def async_refresh_plug_state(self, plug_id: str) -> None:
+        """Refresh the state of a Z-Wave plug.
+
+        This is needed because TargetStatus doesn't update immediately after
+        sending a basicCommand. We need to send a GetBasic command to trigger
+        the status update.
+        """
+        plug_info = self.zwave_plugs.get(plug_id)
+        if not plug_info:
+            return
+
+        node_id = plug_info.get("internal_address", "")
+        if not node_id:
+            return
+
+        url = ZWAVE_CONTROL_URL.format(self.host, self.port)
+        data = f"action=GetBasic&nodeID={node_id}"
+
+        try:
+            async with async_timeout.timeout(10):
+                response = await self._session.post(
+                    url,
+                    data=data,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+                response.raise_for_status()
+                _LOGGER.debug("Refreshed plug %s state", plug_id)
+        except (aiohttp.ClientError, TimeoutError) as err:
+            _LOGGER.debug("Error refreshing plug %s state: %s", plug_id, err)
+

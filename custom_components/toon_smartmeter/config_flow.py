@@ -9,9 +9,9 @@ import aiohttp
 import async_timeout
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -54,7 +54,7 @@ class ToonSmartMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
 
@@ -104,7 +104,7 @@ class ToonSmartMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_import(self, import_config: dict[str, Any]) -> FlowResult:
+    async def async_step_import(self, import_config: dict[str, Any]) -> ConfigFlowResult:
         """Handle import from YAML configuration."""
         _LOGGER.info("Importing Toon Smart Meter configuration from YAML")
 
@@ -149,7 +149,7 @@ class ToonSmartMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class ToonSmartMeterOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for Toon Smart Meter."""
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)

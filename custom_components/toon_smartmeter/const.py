@@ -19,7 +19,7 @@ from homeassistant.const import (
 DOMAIN: Final = "toon_smartmeter"
 
 # Platforms
-PLATFORMS: Final[list[Platform]] = [Platform.SENSOR]
+PLATFORMS: Final[list[Platform]] = [Platform.SENSOR, Platform.SWITCH]
 
 # Default values
 DEFAULT_NAME = "Toon"
@@ -28,6 +28,7 @@ DEFAULT_SCAN_INTERVAL = 10
 
 # API
 BASE_URL = "http://{0}:{1}/hdrv_zwave?action=getDevices.json"
+ZWAVE_CONTROL_URL = "http://{0}:{1}/hdrv_zwave?"
 
 # Sensor types
 SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (

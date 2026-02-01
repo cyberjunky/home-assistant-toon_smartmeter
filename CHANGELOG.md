@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+
+### New Features
+
+- **Z-Wave Power Plugs** - Auto-detection of paired Z-Wave plugs (e.g., Fibaro Wall Plugs) with switch control, power (W), and energy (kWh) sensors
+
 ## 2.0.0
 
 ### Breaking Changes

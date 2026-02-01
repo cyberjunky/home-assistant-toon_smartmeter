@@ -24,12 +24,15 @@ Monitor your smart meter with these sensors:
 - **Solar Power/Energy** - Solar production (if available)
 - **Heat** - District heating (if available)
 - **Water Flow/Quantity** - Water usage (if available)
+- **Z-Wave Power Plugs** - Auto-detected with on/off control, power (W), and energy (kWh) sensors
 
 All sensors are created by default and grouped under a single device for easy management.
 
 ## Screenshots
 
 ![Toon Smart Meter Integration](screenshots/sensors.png)
+
+![Z-Wave Power Plugs](screenshots/powerplugs.png)
 
 ## Requirements
 
@@ -110,6 +113,18 @@ Change integration settings without restarting Home Assistant:
 5. Click **Submit**
 
 Changes apply immediately. To enable/disable individual sensors, click on the sensor entity and toggle "Enable entity".
+
+## Z-Wave Power Plugs
+
+If you have Z-Wave power plugs paired with your Toon (such as Fibaro Wall Plugs), they will be **automatically detected** and the following entities are created for each plug:
+
+| Entity Type | Description | Unit |
+|-------------|-------------|------|
+| Switch | On/off control | - |
+| Power Sensor | Current power usage | W |
+| Energy Sensor | Total energy consumption | kWh |
+
+The energy sensors can be added to the Energy Dashboard for individual plug tracking.
 
 ## Energy Dashboard
 
