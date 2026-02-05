@@ -37,9 +37,9 @@ SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         name="Gas Used Last Hour",
         icon="mdi:gas-cylinder",
         native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
-        # Note: Gas sensors with device_class GAS cannot use MEASUREMENT
-        # Using None since this is a flow rate, not a cumulative counter
-        state_class=None,
+        # This is a flow rate measurement (gas consumption in the last hour)
+        # No device_class is set to allow MEASUREMENT state_class
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="gasusedcnt",
