@@ -172,7 +172,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.debug("Z-Wave plug detected: %s (%s, type: %s)", key, plug_name, dev_type)
 
         # Check for pulse devices
-        for dev in ["dev_3.2", "dev_2.2", "dev_4.2", "dev_7.2"]:
+        for dev in ["dev_5.2", "dev_3.2", "dev_2.2", "dev_4.2", "dev_7.2"]:
             if dev in energy and self._has_valid_electricity(energy, dev):
                 self.device_ids["elecusageflowpulse"] = dev
                 self.device_ids["elecusagecntpulse"] = dev
@@ -394,14 +394,14 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _get_pulse_flow(self, energy: dict[str, Any]) -> float | None:
         """Get electricity flow from pulse devices."""
-        for dev in ["dev_3.2", "dev_2.2", "dev_4.2", "dev_7.2"]:
+        for dev in ["dev_5.2", "dev_3.2", "dev_2.2", "dev_4.2", "dev_7.2"]:
             if dev in energy:
                 return self._validate_output(energy[dev]["CurrentElectricityFlow"])
         return None
 
     def _get_pulse_quantity(self, energy: dict[str, Any]) -> Any:
         """Get electricity quantity from pulse devices."""
-        for dev in ["dev_3.2", "dev_2.2", "dev_4.2", "dev_7.2"]:
+        for dev in ["dev_5.2", "dev_3.2", "dev_2.2", "dev_4.2", "dev_7.2"]:
             if dev in energy:
                 return energy[dev]["CurrentElectricityQuantity"]
         return None
