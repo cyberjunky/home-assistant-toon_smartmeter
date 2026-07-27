@@ -151,23 +151,72 @@ class ToonSmartMeterOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
+        errors: dict[str, str] = {}
+
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            new_host = user_input[CONF_HOST]
+            new_port = user_input[CONF_PORT]
+            current_host = self.config_entry.data[CONF_HOST]
+            current_port = self.config_entry.data.get(CONF_PORT, DEFAULT_PORT)
+
+            if new_host != current_host or new_port != current_port:
+                try:
+                    await validate_connection(self.hass, new_host, new_port)
+                except ConnectionError:
+                    errors["base"] = "cannot_connect"
+                except ValueError:
+                    errors["base"] = "invalid_data"
+                except Exception:  # pylint: disable=broad-except
+                    _LOGGER.exception("Unexpected exception")
+                    errors["base"] = "unknown"
+
+            if not errors:
+                new_options = {
+                    CONF_NAME: user_input.get(CONF_NAME, DEFAULT_NAME),
+                    CONF_SCAN_INTERVAL: user_input.get(
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    ),
+                }
+
+                if new_host != current_host or new_port != current_port:
+                    new_data = dict(self.config_entry.data)
+                    new_data[CONF_HOST] = new_host
+                    new_data[CONF_PORT] = new_port
+                    self.hass.config_entries.async_update_entry(
+                        self.config_entry,
+                        unique_id=new_host,
+                        data=new_data,
+                    )
+
+                return self.async_create_entry(title="", data=new_options)
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_NAME,
-                        default=self.config_entry.options.get(CONF_NAME, DEFAULT_NAME),
-                    ): str,
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                        ),
-                    ): cv.positive_int,
-                }
-            ),
+            data_schema=self._get_options_schema(),
+            errors=errors,
+        )
+
+    def _get_options_schema(self) -> vol.Schema:
+        """Return the options schema."""
+        return vol.Schema(
+            {
+                vol.Required(
+                    CONF_HOST,
+                    default=self.config_entry.data.get(CONF_HOST),
+                ): str,
+                vol.Optional(
+                    CONF_PORT,
+                    default=self.config_entry.data.get(CONF_PORT, DEFAULT_PORT),
+                ): cv.positive_int,
+                vol.Optional(
+                    CONF_NAME,
+                    default=self.config_entry.options.get(CONF_NAME, DEFAULT_NAME),
+                ): str,
+                vol.Optional(
+                    CONF_SCAN_INTERVAL,
+                    default=self.config_entry.options.get(
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    ),
+                ): cv.positive_int,
+            }
         )

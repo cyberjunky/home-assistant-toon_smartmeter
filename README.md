@@ -109,10 +109,14 @@ Change integration settings without restarting Home Assistant:
 1. Go to **Settings** → **Devices & Services**
 2. Find **Toon Smart Meter**
 3. Click **Configure** icon
-4. Modify name or scan interval
+4. Modify any of the following:
+   - **Host**: IP address of your Toon (useful when your Toon moves to a different subnet)
+   - **Port**: Port number
+   - **Name**: Friendly name prefix
+   - **Update Interval**: Seconds between updates
 5. Click **Submit**
 
-Changes apply immediately. To enable/disable individual sensors, click on the sensor entity and toggle "Enable entity".
+If you change the host or port, the connection is validated before saving. Changes apply immediately without losing entity history. To enable/disable individual sensors, click on the sensor entity and toggle "Enable entity".
 
 ## Z-Wave Power Plugs
 

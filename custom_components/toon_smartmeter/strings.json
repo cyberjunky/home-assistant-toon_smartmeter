@@ -34,10 +34,14 @@
                 "title": "Configure Toon Smart Meter Options",
                 "description": "Modify the settings for your Toon Smart Meter integration.",
                 "data": {
+                    "host": "Host",
+                    "port": "Port",
                     "name": "Name",
                     "scan_interval": "Update interval (seconds)"
                 },
                 "data_description": {
+                    "host": "IP address of your rooted Toon device",
+                    "port": "Port number (default: 80)",
                     "name": "Display name for the smart meter sensors",
                     "scan_interval": "How often to poll for updates (default: 10 seconds)"
                 }
