@@ -38,6 +38,7 @@ All sensors are created by default and grouped under a single device for easy ma
 
 - **Rooted Toon thermostat** (available in the Netherlands and Belgium as Boxx)
 - Network access to your Toon device
+- Home Assistant 2026.3.0 or newer
 
 For rooting instructions, visit the [Eneco Toon Domotica Forum](http://www.domoticaforum.eu/viewforum.php?f=87).
 

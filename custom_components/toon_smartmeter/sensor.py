@@ -212,4 +212,3 @@ class ToonZWavePlugSensor(CoordinatorEntity[ToonSmartMeterCoordinator], SensorEn
         if not self.coordinator.last_update_success:
             return False
         return self._plug_id in self.coordinator.zwave_plugs
-
