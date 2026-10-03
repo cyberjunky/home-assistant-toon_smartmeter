@@ -14,6 +14,7 @@ from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
     OptionsFlow,
+    OptionsFlowWithReload,
 )
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant, callback
@@ -158,7 +159,7 @@ class ToonSmartMeterConfigFlow(ConfigFlow, domain=DOMAIN):
         return ToonSmartMeterOptionsFlow()
 
 
-class ToonSmartMeterOptionsFlow(OptionsFlow):
+class ToonSmartMeterOptionsFlow(OptionsFlowWithReload):
     """Handle options flow for Toon Smart Meter."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -196,15 +197,17 @@ class ToonSmartMeterOptionsFlow(OptionsFlow):
                 if updates:
                     self.hass.config_entries.async_update_entry(entry, **updates)
 
-                return self.async_create_entry(
-                    title="",
-                    data={
-                        CONF_NAME: new_name,
-                        CONF_SCAN_INTERVAL: user_input.get(
-                            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                        ),
-                    },
-                )
+                new_options = {
+                    CONF_NAME: new_name,
+                    CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                }
+                # OptionsFlowWithReload only reloads when the options change, so a
+                # host/port-only change must schedule the reload itself. This also
+                # cancels a pending setup retry that would still use the old address.
+                if address_changed and new_options == dict(entry.options):
+                    self.hass.config_entries.async_schedule_reload(entry.entry_id)
+
+                return self.async_create_entry(title="", data=new_options)
 
         return self.async_show_form(
             step_id="init",
