@@ -19,7 +19,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PLATFORMS,
-    SENSOR_KEYS,
+    SENSOR_MAP,
 )
 from .coordinator import ToonSmartMeterCoordinator
 
@@ -50,64 +50,60 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_migrate_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Migrate old entities to new unique_id format.
+# Pre-2.0 releases always used a hardcoded "Toon " prefix (the old YAML schema
+# had no CONF_NAME option for this integration) and built unique_id from the
+# sensor's display name, e.g. unique_id="Toon _Gas Used Cnt" for
+# entity_id="sensor.toon_gas_used_cnt". Two sensors were renamed since; every
+# other name is unchanged.
+LEGACY_UNIQUE_ID_PREFIX = "Toon "
+LEGACY_SENSOR_NAME_OVERRIDES: dict[str, str] = {
+    "waterquantity": "P1 waterquantity",
+    "waterflow": "P1 waterflow",
+}
 
-    Old integration used entity_id like 'sensor.toon_gas_used_last_hour'
-    with unique_id format 'Toon _{sensor_key}'.
-    New format uses unique_id '{entry_id}_{sensor_key}'.
+
+async def async_migrate_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Migrate pre-2.0 entities to the current unique_id format.
+
+    Renaming the unique_id lets the entity registry reuse the existing
+    entity_id instead of registering a new one, so Home Assistant's recorder
+    keeps the entity's history and long-term statistics intact.
     """
     entity_registry = er.async_get(hass)
-
-    # Get values from the entry
     host = entry.data.get(CONF_HOST)
-
-    # Check if we need to migrate
     migrated_count = 0
 
-    for sensor_key in SENSOR_KEYS:
+    for sensor_key, description in SENSOR_MAP.items():
         new_unique_id = f"{entry.entry_id}_{sensor_key}"
 
-        # Check if entity with new unique_id already exists
+        # Already migrated / already on the new scheme.
         if entity_registry.async_get_entity_id("sensor", DOMAIN, new_unique_id):
             continue
 
-        # Possible old unique_id formats
-        old_unique_ids = [
-            f"Toon _{sensor_key}",
-            f"{DEFAULT_NAME} _{sensor_key}",
-            f"Toon_{sensor_key}",
-        ]
+        legacy_name = LEGACY_SENSOR_NAME_OVERRIDES.get(sensor_key, description.name)
+        old_unique_id = f"{LEGACY_UNIQUE_ID_PREFIX}_{legacy_name}"
 
-        # Try to find by old unique_id patterns
-        for old_unique_id in old_unique_ids:
-            entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_unique_id)
+        entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_unique_id)
+        if not entity_id:
+            continue
 
-            # Also check if it was registered without platform
-            if not entity_id:
-                for ent in entity_registry.entities.values():
-                    if ent.domain == "sensor" and ent.unique_id == old_unique_id:
-                        entity_id = ent.entity_id
-                        break
-
-            if entity_id:
-                _LOGGER.info(
-                    "Migrating entity %s from old unique_id '%s' to '%s'",
-                    entity_id,
-                    old_unique_id,
-                    new_unique_id,
-                )
-                entity_registry.async_update_entity(
-                    entity_id,
-                    new_unique_id=new_unique_id,
-                )
-                migrated_count += 1
-                break
+        _LOGGER.info(
+            "Migrating entity %s from legacy unique_id '%s' to '%s'",
+            entity_id,
+            old_unique_id,
+            new_unique_id,
+        )
+        entity_registry.async_update_entity(
+            entity_id,
+            new_unique_id=new_unique_id,
+            config_entry_id=entry.entry_id,
+        )
+        migrated_count += 1
 
     if migrated_count > 0:
         _LOGGER.info("Migrated %s entities for host %s", migrated_count, host)
     else:
-        _LOGGER.debug("No old entities found to migrate for host %s", host)
+        _LOGGER.debug("No legacy entities found to migrate for host %s", host)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

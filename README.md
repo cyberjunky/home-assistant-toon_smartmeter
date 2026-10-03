@@ -102,6 +102,10 @@ sensor:
 2. Manage all settings via **Settings** → **Devices & Services** → **Toon Smart Meter** → **Configure**
 3. Disable unwanted sensors through entity settings
 
+### Upgrading from v1.x
+
+If you're upgrading from a pre-2.0.0 YAML-based install, the integration automatically detects your existing entities on first startup and reuses them, so your entity IDs and history/statistics carry over with no action needed. This doesn't apply to power plug sensors from the old `powerplugs` YAML option — Z-Wave plugs are auto-discovered fresh in v2.0.0+, so rename those manually via entity settings if you want to keep their old history.
+
 ### Modifying Settings
 
 Change integration settings without restarting Home Assistant:
