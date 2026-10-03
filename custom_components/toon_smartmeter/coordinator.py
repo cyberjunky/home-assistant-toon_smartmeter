@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import timedelta
 from functools import reduce
 from typing import Any
 
 import aiohttp
-import async_timeout
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -61,7 +61,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from Toon device."""
         try:
-            async with async_timeout.timeout(10):
+            async with asyncio.timeout(10):
                 response = await self._session.get(
                     self._url, headers={"Accept-Encoding": "identity"}
                 )
@@ -254,9 +254,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         elif suffix == "7":
             self._set_produced_low(key, dev_type, elec_produced_meters)
 
-    def _set_delivered_high(
-        self, key: str, dev_type: str, meters: list[str]
-    ) -> None:
+    def _set_delivered_high(self, key: str, dev_type: str, meters: list[str]) -> None:
         """Set high tariff delivered (consumption) meter."""
         if "elecusageflowhigh" not in self.device_ids:
             self.device_ids["elecusageflowhigh"] = key
@@ -264,9 +262,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             meters.append(key)
             _LOGGER.debug("HAE meter high delivered: %s (%s)", key, dev_type)
 
-    def _set_delivered_low(
-        self, key: str, dev_type: str, meters: list[str]
-    ) -> None:
+    def _set_delivered_low(self, key: str, dev_type: str, meters: list[str]) -> None:
         """Set low tariff delivered (consumption) meter."""
         if "elecusageflowlow" not in self.device_ids:
             self.device_ids["elecusageflowlow"] = key
@@ -274,9 +270,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             meters.append(key)
             _LOGGER.debug("HAE meter low delivered: %s (%s)", key, dev_type)
 
-    def _set_produced_high(
-        self, key: str, dev_type: str, meters: list[str]
-    ) -> None:
+    def _set_produced_high(self, key: str, dev_type: str, meters: list[str]) -> None:
         """Set high tariff produced (return to grid) meter."""
         if "elecprodflowhigh" not in self.device_ids:
             self.device_ids["elecprodflowhigh"] = key
@@ -284,9 +278,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             meters.append(key)
             _LOGGER.debug("HAE meter high produced: %s (%s)", key, dev_type)
 
-    def _set_produced_low(
-        self, key: str, dev_type: str, meters: list[str]
-    ) -> None:
+    def _set_produced_low(self, key: str, dev_type: str, meters: list[str]) -> None:
         """Set low tariff produced (return to grid) meter."""
         if "elecprodflowlow" not in self.device_ids:
             self.device_ids["elecprodflowlow"] = key
@@ -389,7 +381,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if str(value).lower() == "nan":
                 return None
             return float(value)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     def _get_pulse_flow(self, energy: dict[str, Any]) -> float | None:
@@ -500,7 +492,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             value = self.data[plug_id].get("CurrentElectricityFlow")
             return self._validate_output(value)
-        except (KeyError, TypeError, ValueError):
+        except KeyError, TypeError, ValueError:
             return None
 
     def get_plug_energy(self, plug_id: str) -> float | None:
@@ -511,7 +503,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             value = self.data[plug_id].get("CurrentElectricityQuantity")
             validated = self._validate_output(value)
             return validated / 1000 if validated is not None else None
-        except (KeyError, TypeError, ValueError):
+        except KeyError, TypeError, ValueError:
             return None
 
     def get_plug_state(self, plug_id: str) -> bool | None:
@@ -523,7 +515,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if target_status is None:
                 return None
             return str(target_status) == "1"
-        except (KeyError, TypeError):
+        except KeyError, TypeError:
             return None
 
     async def async_set_plug_state(self, plug_id: str, state: bool) -> bool:
@@ -551,7 +543,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data = f"action=basicCommand&nodeID={node_id}&state={state_value}"
 
         try:
-            async with async_timeout.timeout(10):
+            async with asyncio.timeout(10):
                 response = await self._session.post(
                     url,
                     data=data,
@@ -585,7 +577,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data = f"action=GetBasic&nodeID={node_id}"
 
         try:
-            async with async_timeout.timeout(10):
+            async with asyncio.timeout(10):
                 response = await self._session.post(
                     url,
                     data=data,
@@ -595,4 +587,3 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.debug("Refreshed plug %s state", plug_id)
         except (aiohttp.ClientError, TimeoutError) as err:
             _LOGGER.debug("Error refreshing plug %s state: %s", plug_id, err)
-
