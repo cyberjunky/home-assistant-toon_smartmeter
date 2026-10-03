@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Home Assistant on port 8123",
+      "type": "shell",
+      "command": "scripts/develop",
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "scripts/lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup dev environment",
+      "type": "shell",
+      "command": "scripts/setup",
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Home Assistant (requirements.txt)",
+      "type": "shell",
+      "command": "scripts/install/core",
+      "problemMatcher": []
+    },
+    {
+      "label": "Upgrade Home Assistant to latest dev",
+      "type": "shell",
+      "command": "scripts/install/core_dev",
+      "problemMatcher": []
+    }
+  ]
+}
