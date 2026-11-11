@@ -381,7 +381,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if str(value).lower() == "nan":
                 return None
             return float(value)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return None
 
     def _get_pulse_flow(self, energy: dict[str, Any]) -> float | None:
@@ -492,7 +492,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             value = self.data[plug_id].get("CurrentElectricityFlow")
             return self._validate_output(value)
-        except KeyError, TypeError, ValueError:
+        except (KeyError, TypeError, ValueError):
             return None
 
     def get_plug_energy(self, plug_id: str) -> float | None:
@@ -503,7 +503,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             value = self.data[plug_id].get("CurrentElectricityQuantity")
             validated = self._validate_output(value)
             return validated / 1000 if validated is not None else None
-        except KeyError, TypeError, ValueError:
+        except (KeyError, TypeError, ValueError):
             return None
 
     def get_plug_state(self, plug_id: str) -> bool | None:
@@ -515,7 +515,7 @@ class ToonSmartMeterCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if target_status is None:
                 return None
             return str(target_status) == "1"
-        except KeyError, TypeError:
+        except (KeyError, TypeError):
             return None
 
     async def async_set_plug_state(self, plug_id: str, state: bool) -> bool:
